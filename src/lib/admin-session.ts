@@ -2,10 +2,15 @@ import { env } from "cloudflare:workers";
 
 export const ADMIN_COOKIE = "violeta_admin";
 
+/** No Worker, `import.meta.env.DEV` costuma ser false; use `PROD`. */
+export function isNonProdBuild(): boolean {
+	return !import.meta.env.PROD;
+}
+
 export function getSessionSecret(): string {
 	const s = env.ADMIN_SESSION_SECRET?.trim();
 	if (s) return s;
-	if (import.meta.env.DEV) return "dev-admin-session-troque-em-producao";
+	if (isNonProdBuild()) return "dev-admin-session-troque-em-producao";
 	return "";
 }
 

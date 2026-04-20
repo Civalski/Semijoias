@@ -79,20 +79,25 @@ const waPhoneRaw = getPublicWhatsAppNumberRaw();
 			}
 
 			document.addEventListener("click", (e) => {
-				const raw = e.target;
-				const el =
-					raw instanceof Element ? raw : raw.parentElement;
-				if (!el) return;
-				const buyNow = el.closest("[data-buy-now]");
-				const addCart = el.closest("[data-add-cart]");
-				const btn = buyNow ?? addCart;
+				const path =
+					typeof e.composedPath === "function"
+						? e.composedPath()
+						: [e.target];
+				let btn: Element | null = null;
+				for (const n of path) {
+					if (!(n instanceof Element)) continue;
+					const buy = n.closest("[data-buy-now]");
+					const add = n.closest("[data-add-cart]");
+					btn = buy ?? add;
+					if (btn) break;
+				}
 				if (!btn) return;
 				e.preventDefault();
 				const slug = btn.getAttribute("data-slug");
 				const name = btn.getAttribute("data-name");
 				const price = Number(btn.getAttribute("data-price"));
 				if (!slug || !name || Number.isNaN(price)) return;
-				if (buyNow) {
+				if (btn.hasAttribute("data-buy-now")) {
 					if (!waPhone) {
 						showCartToast("WhatsApp da loja não configurado");
 						return;

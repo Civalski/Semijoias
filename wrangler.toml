@@ -12,6 +12,11 @@ binding = "DB"
 database_name = "semijoias"
 database_id = "fa603ce2-06d7-4ea3-8cfd-cabb80214420"
 
+# Sessões Astro (@astrojs/cloudflare); sem id o deploy tenta criar "semijoias-session" de novo (erro 10014).
+[[kv_namespaces]]
+binding = "SESSION"
+id = "34f13d35127245719fc22bad1e9e0a2c"
+
 # Variáveis públicas (não coloque senhas aqui em produção — use wrangler secret)
 [vars]
 ADMIN_PATH_SEGMENT = "admpainelmanager"

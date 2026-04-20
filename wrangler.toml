@@ -13,7 +13,11 @@ compatibility_flags = ["nodejs_compat"]
 # handler usa env.ASSETS para CSS/JS/arquivos públicos quando precisar.
 # https://developers.cloudflare.com/workers/static-assets/routing/worker-script/
 [assets]
-run_worker_first = true
+# `true` equivale a user_worker `/*` sem exceções: em `astro dev` o Worker recebe
+# antes até `/@vite/client` e `/@id/...`, o Astro não encontra rota e o JS do
+# carrinho (Layout.astro) responde 404. Excluímos esses prefixos para o asset/Vite
+# atender primeiro; o restante continua com o Worker à frente (SSR + estáticos).
+run_worker_first = [ "/*", "!/@vite/*", "!/@id/*" ]
 
 # Não defina `main` aqui: o @cloudflare/vite-plugin valida o caminho antes do
 # `astro build` criar dist/. Deploy (CI ou local): use o wrangler gerado em

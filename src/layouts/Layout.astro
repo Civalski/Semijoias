@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 import CartDrawer from "../components/CartDrawer.astro";
+import WhatsAppFloat from "../components/WhatsAppFloat.astro";
 import { getPublicWhatsAppNumberRaw } from "../lib/public-whatsapp";
 
 interface Props {
@@ -35,6 +36,7 @@ const waPhoneRaw = getPublicWhatsAppNumberRaw();
 	<body class="min-h-screen bg-cream text-ink antialiased">
 		<div class="grain-overlay" aria-hidden="true"></div>
 		<slot />
+		<WhatsAppFloat whatsappNumber={waPhoneRaw} />
 		<CartDrawer whatsappNumber={waPhoneRaw} />
 		<div
 			id="cart-toast"

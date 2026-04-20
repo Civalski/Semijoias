@@ -4,7 +4,7 @@
 # 3) Migração local: npm run db:migrate:local
 # 4) Migração produção: npm run db:migrate:remote
 
-name = "semijoias"
+name = "violetasemijoias"
 compatibility_date = "2026-04-20"
 
 [[d1_databases]]

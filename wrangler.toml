@@ -8,23 +8,13 @@ name = "semijoias"
 compatibility_date = "2026-04-20"
 compatibility_flags = ["nodejs_compat"]
 
-# Com Worker + ASSETS, o edge pode responder 404 nas rotas HTML antes de invocar
-# o script. `run_worker_first` faz o Astro (SSR) rodar em toda requisição; o
-# handler usa env.ASSETS para CSS/JS/arquivos públicos quando precisar.
+# Com Worker + ASSETS, o default é “asset primeiro”: rotas HTML (/, /catalogo,
+# etc.) não têm ficheiro em dist/client e o edge devolve 404 vazio sem passar
+# pelo Astro. `run_worker_first = true` invoca sempre o worker; o handler SSR
+# usa env.ASSETS para CSS/JS/arquivos públicos.
 # https://developers.cloudflare.com/workers/static-assets/routing/worker-script/
 [assets]
-# Em dev, o Vite também expõe imports como `/src/...`, `/node_modules/...` e
-# `favicon` em `/favicon.svg`. Se só `/@vite/*` e `/@id/*` forem excluídos do
-# “worker first”, essas URLs ainda batem no Astro e viram 404 (carrinho quebra).
-run_worker_first = [
-	"/*",
-	"!/@vite/*",
-	"!/@id/*",
-	"!/@fs/*",
-	"!/src/*",
-	"!/node_modules/*",
-	"!/favicon.svg",
-]
+run_worker_first = true
 
 # Não defina `main` aqui: o @cloudflare/vite-plugin valida o caminho antes do
 # `astro build` criar dist/. Deploy (CI ou local): use o wrangler gerado em

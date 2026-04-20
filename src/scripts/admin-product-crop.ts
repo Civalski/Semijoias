@@ -133,37 +133,65 @@ export function openProductImageCrop(source: File | string): Promise<string | nu
 			});
 		};
 
-		const startCrop = (src: string) => {
+		const startCrop = async (src: string) => {
 			if (src.startsWith("blob:") || src.startsWith("data:")) {
 				img.removeAttribute("crossorigin");
 			} else {
 				img.crossOrigin = "anonymous";
 			}
 
-			let cropStarted = false;
-			const run = () => {
-				if (cropStarted) return;
-				cropStarted = true;
-				// Modal acabou de aparecer: espera o layout antes do Cropper medir o container.
-				requestAnimationFrame(() => {
-					requestAnimationFrame(() => {
-						bindCropper();
-					});
-				});
-			};
+			img.onload = null;
+			img.onerror = null;
+			// Limpa o elemento antes de novo src (evita estado “complete” antigo e erros fantasmas).
+			img.removeAttribute("src");
 
-			img.onload = () => {
-				run();
-			};
-			img.onerror = () => {
+			let ready = false;
+			try {
+				if (typeof img.decode === "function") {
+					img.src = src;
+					try {
+						await img.decode();
+					} catch {
+						if (img.naturalWidth <= 0) throw new Error("decode");
+					}
+				} else {
+					await new Promise<void>((resolve, reject) => {
+						const ok = () => {
+							img.onload = null;
+							img.onerror = null;
+							resolve();
+						};
+						const bad = () => {
+							img.onload = null;
+							img.onerror = null;
+							reject(new Error("load"));
+						};
+						img.onload = ok;
+						img.onerror = bad;
+						img.src = src;
+						if (img.complete && img.naturalWidth > 0) ok();
+					});
+				}
+				ready = true;
+			} catch {
+				if (img.naturalWidth > 0) ready = true;
+			} finally {
+				img.onload = null;
+				img.onerror = null;
+			}
+
+			if (!ready) {
 				window.alert("Não foi possível carregar a imagem para enquadrar.");
 				finish(null);
-			};
-			img.src = src;
-			if (img.complete && img.naturalWidth > 0) {
-				img.onload = null;
-				run();
+				return;
 			}
+
+			// Modal acabou de aparecer: espera o layout antes do Cropper medir o container.
+			requestAnimationFrame(() => {
+				requestAnimationFrame(() => {
+					bindCropper();
+				});
+			});
 		};
 
 		cancel.addEventListener("click", onCancel);
@@ -215,12 +243,12 @@ export function openProductImageCrop(source: File | string): Promise<string | nu
 					}
 					urlToUse = URL.createObjectURL(source);
 					revokeUrl = urlToUse;
-					startCrop(urlToUse);
+					await startCrop(urlToUse);
 					return;
 				}
 
 				if (source.startsWith("data:")) {
-					startCrop(source);
+					await startCrop(source);
 					return;
 				}
 
@@ -233,7 +261,7 @@ export function openProductImageCrop(source: File | string): Promise<string | nu
 					}
 					urlToUse = URL.createObjectURL(blob);
 					revokeUrl = urlToUse;
-					startCrop(urlToUse);
+					await startCrop(urlToUse);
 					return;
 				}
 

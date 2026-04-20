@@ -7,6 +7,22 @@
 name = "semijoias"
 compatibility_date = "2026-04-20"
 
+# O Astro gera o worker em dist/server/; sem `main` o Wrangler depende de
+# .wrangler/deploy (gitignored). No CI isso pode fazer deploy sem o app → 404.
+main = "dist/server/entry.mjs"
+no_bundle = true
+
+[[rules]]
+type = "ESModule"
+globs = [ "**/*.js", "**/*.mjs" ]
+
+[assets]
+binding = "ASSETS"
+directory = "dist/client"
+
+[images]
+binding = "IMAGES"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "semijoias"

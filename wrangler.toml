@@ -17,6 +17,11 @@ database_id = "fa603ce2-06d7-4ea3-8cfd-cabb80214420"
 binding = "SESSION"
 id = "34f13d35127245719fc22bad1e9e0a2c"
 
+# Admin: ADMIN_PATH_SEGMENT pode ficar em [vars]. Para login em produção defina
+# também segredos (Dashboard → Variables → Encrypt ou `wrangler secret put`):
+#   ADMIN_SESSION_SECRET — string longa aleatória (HMAC do cookie de sessão)
+#   ADMIN_USER, ADMIN_PASSWORD — credenciais (em dev usam padrão; em prod ficam vazias sem isso)
+#
 # Variáveis públicas (não coloque senhas aqui em produção — use wrangler secret)
 [vars]
 ADMIN_PATH_SEGMENT = "admpainelmanager"

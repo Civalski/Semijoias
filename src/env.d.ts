@@ -15,6 +15,7 @@ interface Env {
 	ADMIN_USER?: string;
 	ADMIN_PASSWORD?: string;
 	ADMIN_SESSION_SECRET?: string;
+	PUBLIC_WHATSAPP_NUMBER?: string;
 }
 
 declare module "cloudflare:workers" {

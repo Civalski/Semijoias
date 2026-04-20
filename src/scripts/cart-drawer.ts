@@ -137,7 +137,14 @@ export function initCartDrawer(): void {
 	if (bound || typeof window === "undefined") return;
 	bound = true;
 
-	waPhone = normalizeWhatsAppPhone(import.meta.env.PUBLIC_WHATSAPP_NUMBER ?? "");
+	const rootEl = document.getElementById("cart-drawer-root");
+	const fromPage =
+		rootEl?.dataset.whatsapp?.trim() ??
+		rootEl?.getAttribute("data-whatsapp")?.trim() ??
+		"";
+	waPhone = normalizeWhatsAppPhone(
+		fromPage || (import.meta.env.PUBLIC_WHATSAPP_NUMBER ?? ""),
+	);
 
 	const { root, backdrop, closeBtn, list, btnClear, btnWa } = getEls();
 

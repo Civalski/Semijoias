@@ -1,9 +1,15 @@
 ---
+interface Props {
+	/** DDD+número, só dígitos; resolvido no servidor (Worker vars), não só no build */
+	whatsappNumber?: string;
+}
 
+const { whatsappNumber = "" } = Astro.props;
 ---
 
 <div
 	id="cart-drawer-root"
+	data-whatsapp={whatsappNumber}
 	class="pointer-events-none fixed inset-0 z-[95]"
 	aria-hidden="true"
 >

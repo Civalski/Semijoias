@@ -9,6 +9,7 @@ import {
 	getProductBySlug,
 } from "../../data/products";
 import { normalizeWhatsAppPhone } from "../../lib/cart";
+import { getPublicWhatsAppNumberRaw } from "../../lib/public-whatsapp";
 import { getDb } from "../../lib/db";
 import { readProducts } from "../../lib/products-store";
 
@@ -24,7 +25,7 @@ const related = products
 	.filter((p) => p.category === product.category && p.slug !== product.slug)
 	.slice(0, 3);
 
-const phoneRaw = import.meta.env.PUBLIC_WHATSAPP_NUMBER ?? "";
+const phoneRaw = getPublicWhatsAppNumberRaw();
 const waPhone = normalizeWhatsAppPhone(phoneRaw);
 ---
 

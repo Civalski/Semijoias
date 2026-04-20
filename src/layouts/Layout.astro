@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 import CartDrawer from "../components/CartDrawer.astro";
+import { getPublicWhatsAppNumberRaw } from "../lib/public-whatsapp";
 
 interface Props {
 	title: string;
@@ -12,6 +13,7 @@ const {
 	description = "Semi joias em banho de ouro e prata. Violeta Semi Joias — elegância para o seu dia a dia.",
 } = Astro.props;
 const fullTitle = title.includes("Violeta") ? title : `${title} · Violeta Semi Joias`;
+const waPhoneRaw = getPublicWhatsAppNumberRaw();
 ---
 
 <!doctype html>
@@ -33,7 +35,7 @@ const fullTitle = title.includes("Violeta") ? title : `${title} · Violeta Semi 
 	<body class="min-h-screen bg-cream text-ink antialiased">
 		<div class="grain-overlay" aria-hidden="true"></div>
 		<slot />
-		<CartDrawer />
+		<CartDrawer whatsappNumber={waPhoneRaw} />
 		<div
 			id="cart-toast"
 			class="pointer-events-none fixed bottom-6 left-1/2 z-[100] max-w-[min(90vw,20rem)] -translate-x-1/2 rounded-sm bg-violet-deep px-5 py-3 text-center text-sm text-cream opacity-0 shadow-card transition-opacity duration-300"
@@ -41,7 +43,7 @@ const fullTitle = title.includes("Violeta") ? title : `${title} · Violeta Semi 
 			aria-live="polite"
 		>
 		</div>
-		<script>
+		<script define:vars={{ waPhoneRaw }}>
 			import {
 				buildWhatsAppOrderUrl,
 				CART_STORAGE_KEY,
@@ -53,9 +55,7 @@ const fullTitle = title.includes("Violeta") ? title : `${title} · Violeta Semi 
 				openCartDrawer,
 			} from "../scripts/cart-drawer";
 
-			const waPhone = normalizeWhatsAppPhone(
-				import.meta.env.PUBLIC_WHATSAPP_NUMBER ?? "",
-			);
+			const waPhone = normalizeWhatsAppPhone(waPhoneRaw ?? "");
 
 			let toastTimer: ReturnType<typeof setTimeout> | undefined;
 

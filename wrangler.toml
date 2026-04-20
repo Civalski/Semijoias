@@ -8,12 +8,12 @@ name = "semijoias"
 compatibility_date = "2026-04-20"
 
 [[d1_databases]]
-binding = "DB"
+binding = "semijoias"
 database_name = "semijoias"
-database_id = "SUBSTITUA_PELO_DATABASE_ID"
+database_id = "fa603ce2-06d7-4ea3-8cfd-cabb80214420"
 
 # Variáveis públicas (não coloque senhas aqui em produção — use wrangler secret)
 [vars]
 ADMIN_PATH_SEGMENT = "admpainelmanager"
-# DDD + número, só dígitos (ex.: 5511999999999). Usado no link wa.me do checkout.
-PUBLIC_WHATSAPP_NUMBER = "5511999999999"
+# DDD + número, só dígitos (ex.: 5519995573316). Usado no link wa.me do checkout.
+PUBLIC_WHATSAPP_NUMBER = "5519995573316"

@@ -79,10 +79,12 @@ const waPhoneRaw = getPublicWhatsAppNumberRaw();
 			}
 
 			document.addEventListener("click", (e) => {
-				const target = e.target;
-				if (!(target instanceof Element)) return;
-				const buyNow = target.closest("[data-buy-now]");
-				const addCart = target.closest("[data-add-cart]");
+				const raw = e.target;
+				const el =
+					raw instanceof Element ? raw : raw.parentElement;
+				if (!el) return;
+				const buyNow = el.closest("[data-buy-now]");
+				const addCart = el.closest("[data-add-cart]");
 				const btn = buyNow ?? addCart;
 				if (!btn) return;
 				e.preventDefault();

@@ -1,0 +1,28 @@
+{
+  "name": "semijoias",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "deploy": "astro build && wrangler deploy",
+    "db:migrate:local": "wrangler d1 execute semijoias --local --file=./d1/schema.sql",
+    "db:migrate:remote": "wrangler d1 execute semijoias --remote --file=./d1/schema.sql",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^13.1.10",
+    "@tailwindcss/vite": "^4.2.2",
+    "astro": "^6.1.8",
+    "cropperjs": "^1.6.2",
+    "tailwindcss": "^4.2.2"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260420.1",
+    "wrangler": "^4.84.0"
+  }
+}

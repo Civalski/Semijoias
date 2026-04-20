@@ -1,0 +1,114 @@
+---
+import { categoryLabels, type Category } from "../data/products";
+
+const nav = [
+	{ href: "/", label: "Início" },
+	{ href: "/catalogo", label: "Catálogo" },
+];
+const categories: Category[] = ["colares", "brincos", "pulseiras", "aneis"];
+---
+
+<header class="sticky top-0 z-40">
+	<div
+		class="border-b border-ink/10 bg-violet-deep px-4 py-2 text-center text-[0.7rem] font-medium leading-snug text-cream md:text-xs"
+	>
+		Enviamos para todo o Brasil. Frete grátis em compras acima de R$&nbsp;200,00 em
+		produtos.
+	</div>
+	<div class="border-b border-ink/5 bg-cream/85 backdrop-blur-md">
+		<div class="mx-auto flex max-w-6xl items-center justify-between gap-6 px-5 py-4 md:px-8">
+			<a href="/" class="group flex flex-col leading-none">
+				<span
+					class="font-display text-2xl font-semibold tracking-tight text-violet-deep md:text-[1.65rem]"
+				>
+					Violeta
+				</span>
+				<span
+					class="text-[0.65rem] font-medium uppercase tracking-[0.35em] text-gold-dark"
+				>
+					Semi Joias
+				</span>
+			</a>
+
+			<nav
+				class="hidden flex-1 flex-wrap items-center justify-center gap-x-4 gap-y-2 md:flex lg:gap-x-6 xl:gap-x-8"
+				aria-label="Principal"
+			>
+				{
+					nav.map((item) => (
+						<a href={item.href} class="link-underline text-sm font-medium whitespace-nowrap">
+							{item.label}
+						</a>
+					))
+				}
+				{
+					categories.map((c) => (
+						<a
+							href={`/catalogo#${c}`}
+							class="link-underline text-sm font-medium whitespace-nowrap"
+						>
+							{categoryLabels[c]}
+						</a>
+					))
+				}
+			</nav>
+
+			<div class="flex shrink-0 items-center gap-3 md:gap-4">
+				<button
+					type="button"
+					id="cart-link"
+					class="relative flex h-10 w-10 items-center justify-center rounded-sm border border-ink/10 bg-white text-violet-deep transition hover:border-gold/50"
+					aria-label="Carrinho"
+					aria-haspopup="dialog"
+					aria-expanded="false"
+					aria-controls="cart-drawer-panel"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="22"
+						height="22"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.75"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						aria-hidden="true"
+					>
+						<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path>
+						<path d="M3 6h18"></path>
+						<path d="M16 10a4 4 0 0 1-8 0"></path>
+					</svg>
+					<span
+						id="cart-count"
+						class="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-gold-dark px-1 text-[0.65rem] font-bold text-cream hidden"
+						aria-hidden="true"
+					>
+						0
+					</span>
+				</button>
+				<a href="/catalogo" class="btn-primary !px-5 !py-2.5 text-xs md:!px-6 md:text-sm">
+					Ver joias
+				</a>
+			</div>
+		</div>
+		<div class="border-t border-ink/5 bg-cream/85 backdrop-blur-md md:hidden">
+			<div
+				class="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-5 py-2.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+				role="navigation"
+				aria-label="Categorias"
+			>
+				{
+					categories.map((c) => (
+						<a
+							href={`/catalogo#${c}`}
+							class="shrink-0 rounded-sm border border-ink/15 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-violet-deep transition hover:border-gold/50"
+						>
+							{categoryLabels[c]}
+						</a>
+					))
+				}
+			</div>
+		</div>
+	</div>
+</header>

@@ -1,0 +1,131 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Header from "../../components/Header.astro";
+import Footer from "../../components/Footer.astro";
+import ProductCard from "../../components/ProductCard.astro";
+import {
+	categoryLabels,
+	formatPrice,
+	getProductBySlug,
+} from "../../data/products";
+import { normalizeWhatsAppPhone } from "../../lib/cart";
+import { getDb } from "../../lib/db";
+import { readProducts } from "../../lib/products-store";
+
+const products = await readProducts(getDb());
+const { slug } = Astro.params;
+const product = getProductBySlug(products, slug!);
+
+if (!product) {
+	return Astro.redirect("/catalogo");
+}
+
+const related = products
+	.filter((p) => p.category === product.category && p.slug !== product.slug)
+	.slice(0, 3);
+
+const phoneRaw = import.meta.env.PUBLIC_WHATSAPP_NUMBER ?? "";
+const waPhone = normalizeWhatsAppPhone(phoneRaw);
+---
+
+<Layout
+	title={product.name}
+	description={product.description.slice(0, 155)}
+>
+	<Header />
+	<main>
+		<article class="mx-auto max-w-6xl px-5 py-12 md:px-8 md:py-16">
+			<nav class="text-xs text-ink-muted" aria-label="Navegação">
+				<a href="/" class="transition hover:text-violet-deep">Início</a>
+				<span class="mx-2 opacity-50">/</span>
+				<a href="/catalogo" class="transition hover:text-violet-deep">Catálogo</a>
+				<span class="mx-2 opacity-50">/</span>
+				<span class="text-ink">{product.name}</span>
+			</nav>
+
+			<div class="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-16">
+				<div class="overflow-hidden rounded-sm bg-cream-dark/30 shadow-card ring-1 ring-ink/5">
+					<img
+						src={product.image}
+						alt={product.name}
+						class="aspect-[3/4] w-full object-cover"
+						width="900"
+						height="1200"
+					/>
+				</div>
+				<div>
+					<p class="text-xs font-semibold uppercase tracking-[0.25em] text-gold-dark">
+						{categoryLabels[product.category]}
+					</p>
+					<h1 class="font-display mt-3 text-4xl font-semibold text-violet-deep md:text-5xl">
+						{product.name}
+					</h1>
+					<p class="mt-6 font-display text-3xl font-semibold text-gold-dark">
+						{formatPrice(product.price)}
+					</p>
+					<p class="mt-6 leading-relaxed text-ink-muted">{product.description}</p>
+					<dl class="mt-8 space-y-2 border-t border-ink/10 pt-8 text-sm">
+						<div class="flex gap-2">
+							<dt class="font-medium text-violet-deep">Material</dt>
+							<dd class="text-ink-muted">{product.material}</dd>
+						</div>
+					</dl>
+					<div class="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+						<button
+							type="button"
+							data-add-cart
+							data-slug={product.slug}
+							data-name={product.name}
+							data-price={String(product.price)}
+							class="btn-primary"
+						>
+							Adicionar ao carrinho
+						</button>
+						<button
+							type="button"
+							data-buy-now
+							data-slug={product.slug}
+							data-name={product.name}
+							data-price={String(product.price)}
+							class="btn-ghost border-gold/40"
+						>
+							Comprar agora (WhatsApp)
+						</button>
+						{
+							!waPhone && (
+								<p class="w-full text-sm text-ink-muted">
+									Para comprar pelo WhatsApp, configure{" "}
+									<code class="rounded bg-cream-dark/80 px-1.5 py-0.5 text-xs">
+										PUBLIC_WHATSAPP_NUMBER
+									</code>{" "}
+									no ambiente.
+								</p>
+							)
+						}
+						<a href="/catalogo" class="btn-ghost sm:ml-0">
+							Voltar ao catálogo
+						</a>
+					</div>
+				</div>
+			</div>
+		</article>
+
+		{
+			related.length > 0 && (
+				<section class="border-t border-ink/5 bg-white py-16 md:py-20">
+					<div class="mx-auto max-w-6xl px-5 md:px-8">
+						<h2 class="font-display text-2xl font-semibold text-violet-deep md:text-3xl">
+							Você também pode gostar
+						</h2>
+						<div class="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+							{related.map((p) => (
+								<ProductCard product={p} />
+							))}
+						</div>
+					</div>
+				</section>
+			)
+		}
+	</main>
+	<Footer />
+</Layout>

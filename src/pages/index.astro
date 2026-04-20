@@ -1,0 +1,97 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import Hero from "../components/Hero.astro";
+import ProductCard from "../components/ProductCard.astro";
+import { getDb } from "../lib/db";
+import { readProducts } from "../lib/products-store";
+
+const products = await readProducts(getDb());
+const featured = products.slice(0, 4);
+---
+
+<Layout
+	title="Violeta Semi Joias"
+	description="Semi joias em banho de ouro e prata. Catálogo Violeta — colares, brincos, pulseiras e anéis com design refinado."
+>
+	<Header />
+	<main>
+		<Hero />
+
+		<section id="destaques" class="mx-auto max-w-6xl px-5 py-20 md:px-8">
+			<div class="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
+				<div>
+					<p class="text-xs font-semibold uppercase tracking-[0.3em] text-gold-dark">
+						Seleção
+					</p>
+					<h2 class="font-display mt-3 text-3xl font-semibold text-violet-deep md:text-4xl">
+						Destaques da semana
+					</h2>
+					<p class="mt-3 max-w-lg text-ink-muted">
+						Peças que unem leveza e presença — ideais para presentear ou
+						completar o seu porta-joias.
+					</p>
+				</div>
+				<a href="/catalogo" class="btn-ghost shrink-0">Ver tudo</a>
+			</div>
+			<div class="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+				{featured.map((p) => <ProductCard product={p} />)}
+			</div>
+		</section>
+
+		<section class="border-y border-ink/5 bg-white py-20">
+			<div class="mx-auto max-w-6xl px-5 md:px-8">
+				<div class="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-20">
+					<div class="order-2 lg:order-1">
+						<img
+							src="https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=800&q=85"
+							alt="Detalhe de brincos e semi joias"
+							class="aspect-[4/3] w-full rounded-sm object-cover shadow-card ring-1 ring-ink/5"
+							width="800"
+							height="600"
+							loading="lazy"
+						/>
+					</div>
+					<div class="order-1 lg:order-2">
+						<p class="text-xs font-semibold uppercase tracking-[0.3em] text-gold-dark">
+							Nossa proposta
+						</p>
+						<h2 class="font-display mt-3 text-3xl font-semibold text-violet-deep md:text-4xl">
+							Material de qualidade, estética cuidadosa
+						</h2>
+						<p class="mt-5 leading-relaxed text-ink-muted">
+							Cada peça é escolhida para oferecer durabilidade nos banhos,
+							conforto no uso e um visual que atravessa tendências. Acreditamos
+							que o luxo está nos detalhes — no brilho certo, no peso ideal, no
+							caimento da corrente.
+						</p>
+						<ul class="mt-8 space-y-3 text-sm text-ink-muted">
+							<li class="flex gap-3">
+								<span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" aria-hidden="true"></span>
+								Banhos com camada uniforme e acabamento espelhado
+							</li>
+							<li class="flex gap-3">
+								<span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" aria-hidden="true"></span>
+								Hipoalergênico na medida do possível para peles sensíveis
+							</li>
+							<li class="flex gap-3">
+								<span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" aria-hidden="true"></span>
+								Embalagem pronta para presente
+							</li>
+							<li class="flex gap-3">
+								<span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" aria-hidden="true"></span>
+								Peças com 1 ano de garantia
+							</li>
+							<li class="flex gap-3">
+								<span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" aria-hidden="true"></span>
+								Envio para todo o Brasil — frete grátis acima de R$&nbsp;200,00 em produtos
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</section>
+	</main>
+	<Footer />
+</Layout>

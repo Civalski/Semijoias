@@ -1,0 +1,19 @@
+# Cloudflare Workers + D1 (SQLite)
+# 1) Crie o banco: npx wrangler d1 create semijoias
+# 2) Copie o database_id abaixo
+# 3) Migração local: npm run db:migrate:local
+# 4) Migração produção: npm run db:migrate:remote
+
+name = "semijoias"
+compatibility_date = "2026-04-20"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "semijoias"
+database_id = "SUBSTITUA_PELO_DATABASE_ID"
+
+# Variáveis públicas (não coloque senhas aqui em produção — use wrangler secret)
+[vars]
+ADMIN_PATH_SEGMENT = "admpainelmanager"
+# DDD + número, só dígitos (ex.: 5511999999999). Usado no link wa.me do checkout.
+PUBLIC_WHATSAPP_NUMBER = "5511999999999"

@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+@theme {
+	--font-display: "Cormorant Garamond", ui-serif, Georgia, serif;
+	--font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+
+	--color-cream: #f7f4ef;
+	--color-cream-dark: #ebe4d8;
+	--color-ink: #1f1828;
+	--color-ink-muted: #5c5366;
+	--color-violet: #4a3d5c;
+	--color-violet-deep: #2d2438;
+	--color-gold: #b8956a;
+	--color-gold-light: #d4bc94;
+	--color-gold-dark: #8f7149;
+
+	--shadow-soft: 0 4px 24px -4px rgb(45 36 56 / 0.08);
+	--shadow-card: 0 8px 40px -12px rgb(45 36 56 / 0.12);
+}
+
+@layer base {
+	html {
+		@apply scroll-smooth;
+	}
+	body {
+		font-family: var(--font-sans);
+	}
+}
+
+.grain-overlay {
+	pointer-events: none;
+	position: fixed;
+	inset: 0;
+	z-index: 50;
+	opacity: 0.04;
+	background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.text-balance {
+	text-wrap: balance;
+}
+
+.font-display {
+	font-family: var(--font-display);
+}
+
+.btn-primary {
+	@apply inline-flex items-center justify-center gap-2 rounded-sm bg-violet-deep px-8 py-3.5 text-sm font-medium tracking-wide text-cream transition hover:bg-violet focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold;
+}
+
+.btn-ghost {
+	@apply inline-flex items-center justify-center gap-2 rounded-sm border border-ink/15 bg-transparent px-6 py-3 text-sm font-medium tracking-wide text-ink transition hover:border-gold hover:text-violet-deep;
+}
+
+.link-underline {
+	@apply relative text-ink-muted transition hover:text-violet-deep;
+}
+.link-underline::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	bottom: -2px;
+	width: 100%;
+	height: 1px;
+	background: linear-gradient(90deg, var(--color-gold), var(--color-gold-light));
+	transform: scaleX(0);
+	transform-origin: right;
+	transition: transform 0.35s ease;
+}
+.link-underline:hover::after {
+	transform: scaleX(1);
+	transform-origin: left;
+}

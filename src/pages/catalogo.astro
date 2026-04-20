@@ -1,0 +1,139 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import ProductCard from "../components/ProductCard.astro";
+import { categoryLabels, type Category } from "../data/products";
+import { getDb } from "../lib/db";
+import { readProducts } from "../lib/products-store";
+
+const products = await readProducts(getDb());
+const categories: Category[] = ["colares", "brincos", "pulseiras", "aneis"];
+---
+
+<Layout
+	title="Catálogo"
+	description="Catálogo completo Violeta Semi Joias — colares, brincos, pulseiras e anéis com preços e detalhes."
+>
+	<Header />
+	<main>
+		<section class="border-b border-ink/5 bg-gradient-to-b from-cream to-cream-dark/30 py-14 md:py-20">
+			<div class="mx-auto max-w-6xl px-5 text-center md:px-8">
+				<p class="text-xs font-semibold uppercase tracking-[0.35em] text-gold-dark">
+					Violeta Semi Joias
+				</p>
+				<h1 class="font-display mt-4 text-4xl font-semibold text-violet-deep md:text-5xl">
+					Catálogo
+				</h1>
+				<p class="mx-auto mt-4 max-w-xl text-ink-muted">
+					Filtre por categoria e encontre a peça que combina com você. Enviamos para
+					todo o Brasil; frete grátis em compras acima de R$&nbsp;200,00 em produtos.
+				</p>
+			</div>
+		</section>
+
+		<section class="mx-auto max-w-6xl px-5 py-12 md:px-8 md:py-16">
+			<div
+				class="flex flex-wrap items-center justify-center gap-2 md:justify-start"
+				role="group"
+				aria-label="Filtrar por categoria"
+				id="filter-bar"
+			>
+				<button
+					type="button"
+					data-filter="all"
+					class="filter-btn rounded-sm bg-violet-deep px-4 py-2 text-xs font-semibold uppercase tracking-wider text-cream"
+				>
+					Todas
+				</button>
+				{
+					categories.map((c) => (
+						<button
+							type="button"
+							data-filter={c}
+							class="filter-btn rounded-sm border border-ink/15 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-wider text-ink-muted transition hover:border-gold/50 hover:text-violet-deep"
+						>
+							{categoryLabels[c]}
+						</button>
+					))
+				}
+			</div>
+
+			<div
+				class="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+				id="product-grid"
+			>
+				{
+					products.map((p) => (
+						<div data-category={p.category} class="product-wrap">
+							<ProductCard product={p} />
+						</div>
+					))
+				}
+			</div>
+		</section>
+
+		<section id="cuidados" class="border-t border-ink/5 bg-white py-16 md:py-20">
+			<div class="mx-auto max-w-3xl px-5 text-center md:px-8">
+				<h2 class="font-display text-2xl font-semibold text-violet-deep md:text-3xl">
+					Cuidados com suas semi joias
+				</h2>
+				<p class="mt-4 text-ink-muted">
+					Para manter o brilho por mais tempo, evite contato com perfume,
+					cremes e água sanitária. Guarde cada peça separadamente, em local seco
+					e arejado. Limpe com pano macio e seco após o uso.
+				</p>
+			</div>
+		</section>
+	</main>
+	<Footer />
+
+	<script>
+		const bar = document.getElementById("filter-bar");
+		const wraps = document.querySelectorAll<HTMLElement>(".product-wrap");
+		const buttons = bar?.querySelectorAll<HTMLButtonElement>(".filter-btn");
+		const categoryIds = ["colares", "brincos", "pulseiras", "aneis"] as const;
+
+		function setActive(cat: string) {
+			buttons?.forEach((btn) => {
+				const isAll = cat === "all" && btn.dataset.filter === "all";
+				const match = btn.dataset.filter === cat;
+				if (isAll || match) {
+					btn.classList.remove("border", "border-ink/15", "bg-white", "text-ink-muted");
+					btn.classList.add("bg-violet-deep", "text-cream");
+				} else {
+					btn.classList.add("border", "border-ink/15", "bg-white", "text-ink-muted");
+					btn.classList.remove("bg-violet-deep", "text-cream");
+				}
+			});
+			wraps.forEach((w) => {
+				const c = w.dataset.category;
+				w.style.display = cat === "all" || c === cat ? "" : "none";
+			});
+		}
+
+		function applyHash() {
+			const raw = window.location.hash.replace(/^#/, "");
+			if (raw && categoryIds.includes(raw as (typeof categoryIds)[number])) {
+				setActive(raw);
+			} else {
+				setActive("all");
+			}
+		}
+
+		buttons?.forEach((btn) => {
+			btn.addEventListener("click", () => {
+				const f = btn.dataset.filter ?? "all";
+				setActive(f);
+				if (f === "all") {
+					history.replaceState(null, "", window.location.pathname + window.location.search);
+				} else {
+					history.replaceState(null, "", `${window.location.pathname}${window.location.search}#${f}`);
+				}
+			});
+		});
+
+		applyHash();
+		window.addEventListener("hashchange", applyHash);
+	</script>
+</Layout>

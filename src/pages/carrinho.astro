@@ -1,0 +1,21 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Layout
+	title="Carrinho"
+	description="Revise os itens e finalize seu pedido pelo WhatsApp na Violeta Semi Joias."
+>
+	<Header />
+	<main class="mx-auto max-w-6xl px-5 py-16 text-center md:px-8 md:py-20">
+		<p class="text-ink-muted">
+			O carrinho abre ao lado da tela. Use o ícone do carrinho no topo ou{" "}
+			<a href="/catalogo" class="font-medium text-violet-deep underline underline-offset-2 hover:text-violet"
+				>volte ao catálogo</a
+			>.
+		</p>
+	</main>
+	<Footer />
+</Layout>

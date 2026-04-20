@@ -1,0 +1,674 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { categoryLabels, formatPrice, type Category } from "../../data/products";
+import { getAdminPathSegment } from "../../lib/admin-config";
+import { ADMIN_COOKIE, getSessionSecret, verifySessionValue } from "../../lib/admin-session";
+import { getDb } from "../../lib/db";
+import { readProducts } from "../../lib/products-store";
+
+const expected = getAdminPathSegment();
+const segment = Astro.params.adminSecret ?? "";
+
+if (segment !== expected) {
+	return new Response(null, { status: 404 });
+}
+
+const sessionOk = await verifySessionValue(
+	Astro.cookies.get(ADMIN_COOKIE)?.value,
+	getSessionSecret(),
+);
+
+if (!sessionOk) {
+	return Astro.redirect(`/${expected}/`, 302);
+}
+
+const products = await readProducts(getDb());
+const categories: Category[] = ["colares", "brincos", "pulseiras", "aneis"];
+---
+
+<Layout title="Painel · Catálogo" description="Edição do catálogo Violeta Semi Joias.">
+	<div class="min-h-screen bg-cream pb-20 pt-10">
+		<div class="mx-auto max-w-4xl px-5 md:px-8">
+			<header
+				class="flex flex-col gap-4 border-b border-ink/10 pb-6 sm:flex-row sm:items-center sm:justify-between"
+			>
+				<div>
+					<p class="text-xs font-semibold uppercase tracking-[0.25em] text-gold-dark">
+						Violeta · Gestão
+					</p>
+					<h1 class="font-display mt-1 text-2xl font-semibold text-violet-deep md:text-3xl">
+						Catálogo de produtos
+					</h1>
+				</div>
+				<div class="flex flex-wrap gap-3">
+					<button type="button" id="btn-add" class="btn-ghost !py-2.5 text-xs">
+						+ Novo produto
+					</button>
+					<a href="/api/admin/logout" class="btn-ghost !py-2.5 text-xs"> Sair </a>
+					<a href="/catalogo" class="btn-primary !py-2.5 text-xs"> Ver loja </a>
+				</div>
+			</header>
+
+			<p id="save-msg" class="mt-6 hidden rounded-sm border px-4 py-3 text-sm" role="status"></p>
+
+			<div id="editors" class="mt-8 space-y-6">
+				{
+					products.map((p) => (
+						<fieldset
+							data-product-editor
+							data-id={p.id}
+							class="rounded-sm border border-ink/10 bg-white p-5 shadow-soft"
+						>
+							<div class="flex flex-wrap items-start justify-between gap-3 border-b border-ink/5 pb-4">
+								<legend class="font-display text-lg font-semibold text-violet-deep">
+									{p.name}
+								</legend>
+								<button
+									type="button"
+									data-remove
+									class="text-xs font-semibold uppercase tracking-wider text-red-700/90 hover:text-red-800"
+								>
+									Remover
+								</button>
+							</div>
+							<div class="mt-4 grid gap-8 lg:grid-cols-[1fr_minmax(280px,380px)] lg:items-start">
+								<div class="grid gap-4 md:grid-cols-2">
+									<div class="md:col-span-2">
+										<label class="block text-xs font-medium text-violet-deep">Nome</label>
+										<input
+											type="text"
+											data-field="name"
+											value={p.name}
+											class="mt-1 w-full rounded-sm border border-ink/15 px-3 py-2 text-sm"
+										/>
+									</div>
+									<div>
+										<label class="block text-xs font-medium text-violet-deep">Slug (URL)</label>
+										<input
+											type="text"
+											data-field="slug"
+											value={p.slug}
+											class="mt-1 w-full rounded-sm border border-ink/15 px-3 py-2 font-mono text-sm"
+										/>
+										<button
+											type="button"
+											data-slugify
+											class="mt-2 text-xs font-medium text-violet underline-offset-2 hover:underline"
+										>
+											Gerar slug a partir do nome
+										</button>
+									</div>
+									<div>
+										<label class="block text-xs font-medium text-violet-deep">Preço (R$)</label>
+										<input
+											type="number"
+											step="0.01"
+											min="0"
+											data-field="price"
+											value={p.price}
+											class="mt-1 w-full rounded-sm border border-ink/15 px-3 py-2 text-sm"
+										/>
+									</div>
+									<div>
+										<label class="block text-xs font-medium text-violet-deep">Categoria</label>
+										<select
+											data-field="category"
+											class="mt-1 w-full rounded-sm border border-ink/15 bg-white px-3 py-2 text-sm"
+										>
+											{categories.map((c) => (
+												<option value={c} selected={p.category === c}>
+													{categoryLabels[c]}
+												</option>
+											))}
+										</select>
+									</div>
+									<div class="md:col-span-2">
+										<label class="block text-xs font-medium text-violet-deep">Imagem</label>
+										<p class="mt-0.5 text-[0.7rem] text-ink-muted">
+											Cole uma URL ou envie um arquivo. Você pode abrir &quot;Enquadrar imagem&quot;
+											para zoom e posição (área fixa igual à vitrine). Exportamos em WebP/JPEG com
+											boa nitidez.
+										</p>
+										<input
+											type="text"
+											data-field="image"
+											value={p.image}
+											placeholder="https://… ou imagem enviada abaixo"
+											class="mt-2 w-full rounded-sm border border-ink/15 px-3 py-2 font-mono text-xs"
+										/>
+										<div class="mt-2 flex flex-wrap gap-2">
+											<button
+												type="button"
+												data-open-image-crop
+												class="rounded-sm border border-gold/50 bg-cream/80 px-3 py-1.5 text-xs font-semibold text-violet-deep hover:border-gold hover:bg-white"
+											>
+												Enquadrar imagem
+											</button>
+										</div>
+										<input
+											type="file"
+											accept="image/*"
+											data-image-file
+											class="mt-2 block w-full text-xs text-ink-muted file:mr-3 file:rounded-sm file:border-0 file:bg-violet-deep file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-cream file:hover:bg-violet"
+										/>
+									</div>
+									<div class="md:col-span-2">
+										<label class="block text-xs font-medium text-violet-deep">Material</label>
+										<input
+											type="text"
+											data-field="material"
+											value={p.material}
+											class="mt-1 w-full rounded-sm border border-ink/15 px-3 py-2 text-sm"
+										/>
+									</div>
+									<div class="md:col-span-2">
+										<label class="block text-xs font-medium text-violet-deep">Descrição</label>
+										<textarea
+											data-field="description"
+											rows={4}
+											class="mt-1 w-full resize-y rounded-sm border border-ink/15 px-3 py-2 text-sm"
+										>
+											{p.description}
+										</textarea>
+									</div>
+								</div>
+								<aside
+									class="rounded-sm border border-ink/10 bg-cream-dark/20 p-4 lg:sticky lg:top-6"
+									data-preview-panel
+								>
+									<div class="mb-4">
+										<p class="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-gold-dark">
+											Pré-visualização na loja
+										</p>
+										<p class="mt-1 text-xs text-ink-muted">
+											Modelo da página do produto (mesma foto e textos).
+										</p>
+									</div>
+									<div class="overflow-hidden rounded-sm bg-white shadow-card ring-1 ring-ink/5">
+										<img
+											src={p.image}
+											alt=""
+											class="aspect-[3/4] w-full object-cover"
+											width="360"
+											height="480"
+											data-preview-img
+										/>
+										<div class="space-y-2 p-3 text-xs">
+											<p
+												class="text-[0.6rem] font-semibold uppercase tracking-[0.2em] text-gold-dark"
+												data-preview-cat
+											>
+												{categoryLabels[p.category]}
+											</p>
+											<h3
+												class="font-display text-lg font-semibold leading-tight text-violet-deep"
+												data-preview-name
+											>
+												{p.name}
+											</h3>
+											<p class="font-display text-base font-semibold text-gold-dark" data-preview-price>
+												{formatPrice(p.price)}
+											</p>
+											<p class="leading-relaxed text-ink-muted" data-preview-desc>
+												{p.description}
+											</p>
+											<dl class="border-t border-ink/10 pt-2">
+												<div class="flex flex-wrap gap-1">
+													<dt class="font-medium text-violet-deep">Material</dt>
+													<dd class="text-ink-muted" data-preview-material>
+														{p.material}
+													</dd>
+												</div>
+											</dl>
+										</div>
+									</div>
+								</aside>
+							</div>
+						</fieldset>
+					))
+				}
+			</div>
+
+			<div class="mt-10 flex justify-end">
+				<button type="button" id="btn-save" class="btn-primary">Salvar catálogo</button>
+			</div>
+		</div>
+
+		<div
+			id="admin-crop-modal"
+			class="fixed inset-0 z-[200] hidden"
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="admin-crop-title"
+		>
+			<div
+				id="admin-crop-backdrop"
+				class="absolute inset-0 bg-ink/60 backdrop-blur-[2px]"
+				aria-hidden="true"
+			>
+			</div>
+			<div class="absolute inset-0 flex items-center justify-center p-4 pointer-events-none">
+				<div
+					class="pointer-events-auto flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-sm bg-white shadow-2xl ring-1 ring-ink/15"
+				>
+					<div class="flex shrink-0 items-start justify-between gap-3 border-b border-ink/10 px-4 py-3 sm:px-5">
+						<div>
+							<h2 id="admin-crop-title" class="font-display text-lg font-semibold text-violet-deep">
+								Enquadrar foto
+							</h2>
+							<p class="mt-1 text-[0.7rem] leading-snug text-ink-muted sm:text-xs">
+								Arraste a imagem para reposicionar. Use a rolagem do mouse ou gesto de pinça para zoom.
+								O recorte final usa o mesmo formato da loja (vertical 3:4).
+							</p>
+						</div>
+						<button
+							type="button"
+							id="admin-crop-cancel"
+							class="shrink-0 rounded-sm border border-ink/15 px-2 py-1 text-xs text-ink-muted hover:bg-cream"
+						>
+							Fechar
+						</button>
+					</div>
+					<div class="min-h-[min(58vh,520px)] flex-1 bg-cream-dark/25 p-3 sm:p-4">
+						<img
+							id="admin-crop-img"
+							alt=""
+							class="block max-h-[min(58vh,520px)] w-full max-w-none"
+						/>
+					</div>
+					<div class="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-ink/10 bg-white px-4 py-3 sm:px-5">
+						<button type="button" id="admin-crop-apply" class="btn-primary text-sm">
+							Usar este enquadramento
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<template id="tpl-product">
+		<fieldset
+			data-product-editor
+			data-id=""
+			class="rounded-sm border border-ink/10 bg-white p-5 shadow-soft"
+		>
+			<div class="flex flex-wrap items-start justify-between gap-3 border-b border-ink/5 pb-4">
+				<legend class="font-display text-lg font-semibold text-violet-deep">Novo produto</legend>
+				<button
+					type="button"
+					data-remove
+					class="text-xs font-semibold uppercase tracking-wider text-red-700/90 hover:text-red-800"
+				>
+					Remover
+				</button>
+			</div>
+			<div class="mt-4 grid gap-8 lg:grid-cols-[1fr_minmax(280px,380px)] lg:items-start">
+				<div class="grid gap-4 md:grid-cols-2">
+					<div class="md:col-span-2">
+						<label class="block text-xs font-medium text-violet-deep">Nome</label>
+						<input
+							type="text"
+							data-field="name"
+							value=""
+							class="mt-1 w-full rounded-sm border border-ink/15 px-3 py-2 text-sm"
+						/>
+					</div>
+					<div>
+						<label class="block text-xs font-medium text-violet-deep">Slug (URL)</label>
+						<input
+							type="text"
+							data-field="slug"
+							value=""
+							class="mt-1 w-full rounded-sm border border-ink/15 px-3 py-2 font-mono text-sm"
+						/>
+						<button
+							type="button"
+							data-slugify
+							class="mt-2 text-xs font-medium text-violet underline-offset-2 hover:underline"
+						>
+							Gerar slug a partir do nome
+						</button>
+					</div>
+					<div>
+						<label class="block text-xs font-medium text-violet-deep">Preço (R$)</label>
+						<input
+							type="number"
+							step="0.01"
+							min="0"
+							data-field="price"
+							value="0"
+							class="mt-1 w-full rounded-sm border border-ink/15 px-3 py-2 text-sm"
+						/>
+					</div>
+					<div>
+						<label class="block text-xs font-medium text-violet-deep">Categoria</label>
+						<select
+							data-field="category"
+							class="mt-1 w-full rounded-sm border border-ink/15 bg-white px-3 py-2 text-sm"
+						>
+							<option value="colares">Colares</option>
+							<option value="brincos">Brincos</option>
+							<option value="pulseiras">Pulseiras</option>
+							<option value="aneis">Anéis</option>
+						</select>
+					</div>
+					<div class="md:col-span-2">
+						<label class="block text-xs font-medium text-violet-deep">Imagem</label>
+						<p class="mt-0.5 text-[0.7rem] text-ink-muted">
+							Cole uma URL ou envie um arquivo. Use &quot;Enquadrar imagem&quot; para zoom e posição
+							(área fixa igual à vitrine). Exportamos em WebP/JPEG com boa nitidez.
+						</p>
+						<input
+							type="text"
+							data-field="image"
+							value=""
+							placeholder="https://… ou imagem enviada abaixo"
+							class="mt-2 w-full rounded-sm border border-ink/15 px-3 py-2 font-mono text-xs"
+						/>
+						<div class="mt-2 flex flex-wrap gap-2">
+							<button
+								type="button"
+								data-open-image-crop
+								class="rounded-sm border border-gold/50 bg-cream/80 px-3 py-1.5 text-xs font-semibold text-violet-deep hover:border-gold hover:bg-white"
+							>
+								Enquadrar imagem
+							</button>
+						</div>
+						<input
+							type="file"
+							accept="image/*"
+							data-image-file
+							class="mt-2 block w-full text-xs text-ink-muted file:mr-3 file:rounded-sm file:border-0 file:bg-violet-deep file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-cream file:hover:bg-violet"
+						/>
+					</div>
+					<div class="md:col-span-2">
+						<label class="block text-xs font-medium text-violet-deep">Material</label>
+						<input
+							type="text"
+							data-field="material"
+							value=""
+							class="mt-1 w-full rounded-sm border border-ink/15 px-3 py-2 text-sm"
+						/>
+					</div>
+					<div class="md:col-span-2">
+						<label class="block text-xs font-medium text-violet-deep">Descrição</label>
+						<textarea
+							data-field="description"
+							rows={4}
+							class="mt-1 w-full resize-y rounded-sm border border-ink/15 px-3 py-2 text-sm"
+						></textarea>
+					</div>
+				</div>
+				<aside
+					class="rounded-sm border border-ink/10 bg-cream-dark/20 p-4 lg:sticky lg:top-6"
+					data-preview-panel
+				>
+					<div class="mb-4">
+						<p class="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-gold-dark">
+							Pré-visualização na loja
+						</p>
+						<p class="mt-1 text-xs text-ink-muted">
+							Modelo da página do produto (mesma foto e textos).
+						</p>
+					</div>
+					<div class="overflow-hidden rounded-sm bg-white shadow-card ring-1 ring-ink/5">
+						<img
+							src=""
+							alt=""
+							class="aspect-[3/4] w-full object-cover"
+							width="360"
+							height="480"
+							data-preview-img
+						/>
+						<div class="space-y-2 p-3 text-xs">
+							<p
+								class="text-[0.6rem] font-semibold uppercase tracking-[0.2em] text-gold-dark"
+								data-preview-cat
+							>
+								Colares
+							</p>
+							<h3
+								class="font-display text-lg font-semibold leading-tight text-violet-deep"
+								data-preview-name
+							>
+								Novo produto
+							</h3>
+							<p class="font-display text-base font-semibold text-gold-dark" data-preview-price>
+								R$ 0,00
+							</p>
+							<p class="leading-relaxed text-ink-muted" data-preview-desc>
+								Descrição do produto
+							</p>
+							<dl class="border-t border-ink/10 pt-2">
+								<div class="flex flex-wrap gap-1">
+									<dt class="font-medium text-violet-deep">Material</dt>
+									<dd class="text-ink-muted" data-preview-material></dd>
+								</div>
+							</dl>
+						</div>
+					</div>
+				</aside>
+			</div>
+		</fieldset>
+	</template>
+
+	<script>
+		import { openProductImageCrop } from "../../scripts/admin-product-crop";
+
+		const CATEGORY_LABELS: Record<string, string> = {
+			colares: "Colares",
+			brincos: "Brincos",
+			pulseiras: "Pulseiras",
+			aneis: "Anéis",
+		};
+
+		const PLACEHOLDER_IMG =
+			"data:image/svg+xml," +
+			encodeURIComponent(
+				`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="533" viewBox="0 0 400 533"><rect fill="#e8e4dc" width="400" height="533"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#7c6f8a" font-family="system-ui,sans-serif" font-size="14">Sem imagem</text></svg>`,
+			);
+
+		function slugifyClient(text: string): string {
+			return text
+				.normalize("NFD")
+				.replace(/\p{M}/gu, "")
+				.toLowerCase()
+				.trim()
+				.replace(/[^a-z0-9]+/g, "-")
+				.replace(/^-+|-+$/g, "");
+		}
+
+		function formatPriceBR(value: number): string {
+			return new Intl.NumberFormat("pt-BR", {
+				style: "currency",
+				currency: "BRL",
+			}).format(Number.isFinite(value) ? value : 0);
+		}
+
+		function fieldValue(fs: HTMLElement, name: string): string {
+			const el = fs.querySelector(`[data-field="${name}"]`) as
+				| HTMLInputElement
+				| HTMLTextAreaElement
+				| HTMLSelectElement
+				| null;
+			return el?.value ?? "";
+		}
+
+		function updatePreviews(fs: HTMLElement) {
+			const name = fieldValue(fs, "name").trim() || "Sem nome";
+			const desc = fieldValue(fs, "description").trim() || "—";
+			const material = fieldValue(fs, "material").trim() || "—";
+			const cat = fieldValue(fs, "category");
+			const catLabel = CATEGORY_LABELS[cat] ?? cat;
+			const price = Number.parseFloat(fieldValue(fs, "price"));
+			const priceLabel = formatPriceBR(price);
+			let imgSrc = fieldValue(fs, "image").trim();
+			if (!imgSrc) imgSrc = PLACEHOLDER_IMG;
+
+			const imgEl = fs.querySelector("[data-preview-img]") as HTMLImageElement | null;
+			if (imgEl) {
+				imgEl.src = imgSrc;
+				imgEl.alt = name;
+			}
+
+			const setText = (sel: string, text: string) => {
+				const n = fs.querySelector(sel);
+				if (n) n.textContent = text;
+			};
+			setText("[data-preview-cat]", catLabel);
+			setText("[data-preview-name]", name);
+			setText("[data-preview-price]", priceLabel);
+			setText("[data-preview-desc]", desc);
+			setText("[data-preview-material]", material);
+		}
+
+		function wireFieldset(fs: HTMLElement) {
+			fs.querySelector("[data-slugify]")?.addEventListener("click", () => {
+				const name =
+					(fs.querySelector('[data-field="name"]') as HTMLInputElement)?.value ?? "";
+				const slugInput = fs.querySelector('[data-field="slug"]') as HTMLInputElement;
+				if (slugInput) slugInput.value = slugifyClient(name);
+			});
+			fs.querySelector("[data-remove]")?.addEventListener("click", () => {
+				fs.remove();
+			});
+
+			const fileInput = fs.querySelector("[data-image-file]") as HTMLInputElement | null;
+			fileInput?.addEventListener("change", async () => {
+				const f = fileInput.files?.[0];
+				if (!f) return;
+				try {
+					const cropped = await openProductImageCrop(f);
+					fileInput.value = "";
+					if (!cropped) return;
+					const maxDataLen = 1_800_000;
+					if (cropped.length > maxDataLen) {
+						window.alert(
+							"A imagem ficou grande demais após otimização. Tente uma foto menor ou com menos detalhes.",
+						);
+						return;
+					}
+					const imgField = fs.querySelector('[data-field="image"]') as HTMLInputElement | null;
+					if (imgField) imgField.value = cropped;
+					updatePreviews(fs);
+				} catch (e) {
+					fileInput.value = "";
+					const msg = e instanceof Error ? e.message : "Não foi possível importar a imagem.";
+					window.alert(msg);
+				}
+			});
+
+			fs.querySelector("[data-open-image-crop]")?.addEventListener("click", async () => {
+				const imgField = fs.querySelector('[data-field="image"]') as HTMLInputElement | null;
+				const v = imgField?.value?.trim() ?? "";
+				if (!v) {
+					window.alert(
+						"Cole uma URL de imagem no campo acima ou envie um arquivo primeiro.",
+					);
+					return;
+				}
+				try {
+					const cropped = await openProductImageCrop(v);
+					if (!cropped) return;
+					const maxDataLen = 1_800_000;
+					if (cropped.length > maxDataLen) {
+						window.alert(
+							"A imagem ficou grande demais após otimização. Tente uma foto menor ou com menos detalhes.",
+						);
+						return;
+					}
+					if (imgField) imgField.value = cropped;
+					updatePreviews(fs);
+				} catch (e) {
+					const msg = e instanceof Error ? e.message : "Não foi possível enquadrar a imagem.";
+					window.alert(msg);
+				}
+			});
+
+			updatePreviews(fs);
+		}
+
+		document.querySelectorAll("[data-product-editor]").forEach((el) => {
+			wireFieldset(el as HTMLElement);
+		});
+
+		const editorsEl = document.getElementById("editors");
+		editorsEl?.addEventListener("input", (e) => {
+			const t = e.target as HTMLElement | null;
+			const fs = t?.closest("[data-product-editor]") as HTMLElement | null;
+			if (fs) updatePreviews(fs);
+		});
+		editorsEl?.addEventListener("change", (e) => {
+			const t = e.target as HTMLElement | null;
+			const fs = t?.closest("[data-product-editor]") as HTMLElement | null;
+			if (fs) updatePreviews(fs);
+		});
+
+		document.getElementById("btn-add")?.addEventListener("click", () => {
+			const tpl = document.getElementById("tpl-product") as HTMLTemplateElement;
+			const node = tpl.content.firstElementChild?.cloneNode(true) as HTMLElement;
+			if (!node) return;
+			const id = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `n-${Date.now()}`;
+			node.dataset.id = id;
+			document.getElementById("editors")?.prepend(node);
+			wireFieldset(node);
+		});
+
+		function collect(): unknown[] {
+			const out: unknown[] = [];
+			document.querySelectorAll("[data-product-editor]").forEach((el) => {
+				const id = (el as HTMLElement).dataset.id;
+				if (!id) return;
+				const q = (name: string) =>
+					(el.querySelector(`[data-field="${name}"]`) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null)?.value ?? "";
+
+				const price = Number.parseFloat(q("price"));
+				out.push({
+					id,
+					slug: q("slug").trim(),
+					name: q("name").trim(),
+					category: q("category"),
+					price: Number.isFinite(price) ? price : 0,
+					description: q("description").trim(),
+					image: q("image").trim(),
+					material: q("material").trim(),
+				});
+			});
+			return out;
+		}
+
+		const msg = document.getElementById("save-msg");
+
+		document.getElementById("btn-save")?.addEventListener("click", async () => {
+			if (!msg) return;
+			msg.classList.add("hidden");
+			const payload = collect();
+
+			const res = await fetch("/api/admin/products", {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload),
+			});
+
+			if (res.ok) {
+				msg.textContent = "Catálogo salvo com sucesso.";
+				msg.className =
+					"mt-6 rounded-sm border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900";
+				msg.classList.remove("hidden");
+				return;
+			}
+
+			let detail = "Revise os campos e tente novamente.";
+			try {
+				const j = await res.json();
+				if (j?.error) detail = j.error;
+			} catch {
+				/* ignore */
+			}
+			msg.textContent = detail;
+			msg.className =
+				"mt-6 rounded-sm border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900";
+			msg.classList.remove("hidden");
+		});
+	</script>
+</Layout>

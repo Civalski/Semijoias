@@ -1,0 +1,113 @@
+---
+import "../styles/global.css";
+import CartDrawer from "../components/CartDrawer.astro";
+
+interface Props {
+	title: string;
+	description?: string;
+}
+
+const {
+	title,
+	description = "Semi joias em banho de ouro e prata. Violeta Semi Joias — elegância para o seu dia a dia.",
+} = Astro.props;
+const fullTitle = title.includes("Violeta") ? title : `${title} · Violeta Semi Joias`;
+---
+
+<!doctype html>
+<html lang="pt-BR" class="scroll-smooth">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		<meta name="description" content={description} />
+		<title>{fullTitle}</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600&display=swap"
+			rel="stylesheet"
+		/>
+	</head>
+	<body class="min-h-screen bg-cream text-ink antialiased">
+		<div class="grain-overlay" aria-hidden="true"></div>
+		<slot />
+		<CartDrawer />
+		<div
+			id="cart-toast"
+			class="pointer-events-none fixed bottom-6 left-1/2 z-[100] max-w-[min(90vw,20rem)] -translate-x-1/2 rounded-sm bg-violet-deep px-5 py-3 text-center text-sm text-cream opacity-0 shadow-card transition-opacity duration-300"
+			role="status"
+			aria-live="polite"
+		>
+		</div>
+		<script>
+			import {
+				buildWhatsAppOrderUrl,
+				CART_STORAGE_KEY,
+				normalizeWhatsAppPhone,
+			} from "../lib/cart";
+			import { addToCart, syncCartBadge } from "../scripts/cart-client";
+			import {
+				initCartDrawer,
+				openCartDrawer,
+			} from "../scripts/cart-drawer";
+
+			const waPhone = normalizeWhatsAppPhone(
+				import.meta.env.PUBLIC_WHATSAPP_NUMBER ?? "",
+			);
+
+			let toastTimer: ReturnType<typeof setTimeout> | undefined;
+
+			function showCartToast(message: string) {
+				const t = document.getElementById("cart-toast");
+				if (!t) return;
+				t.textContent = message;
+				t.classList.remove("opacity-0");
+				if (toastTimer) clearTimeout(toastTimer);
+				toastTimer = setTimeout(() => {
+					t.classList.add("opacity-0");
+				}, 2200);
+			}
+
+			initCartDrawer();
+
+			if (window.location.pathname === "/carrinho") {
+				openCartDrawer();
+			}
+
+			document.addEventListener("click", (e) => {
+				const target = e.target;
+				if (!(target instanceof Element)) return;
+				const buyNow = target.closest("[data-buy-now]");
+				const addCart = target.closest("[data-add-cart]");
+				const btn = buyNow ?? addCart;
+				if (!btn) return;
+				e.preventDefault();
+				const slug = btn.getAttribute("data-slug");
+				const name = btn.getAttribute("data-name");
+				const price = Number(btn.getAttribute("data-price"));
+				if (!slug || !name || Number.isNaN(price)) return;
+				if (buyNow) {
+					if (!waPhone) {
+						showCartToast("WhatsApp da loja não configurado");
+						return;
+					}
+					window.location.href = buildWhatsAppOrderUrl(waPhone, [
+						{ slug, name, price, qty: 1 },
+					]);
+					return;
+				}
+				addToCart(slug, name, price, 1);
+				syncCartBadge();
+				showCartToast("Adicionado ao carrinho");
+			});
+
+			syncCartBadge();
+			window.addEventListener("violeta-cart", syncCartBadge);
+			window.addEventListener("storage", (ev) => {
+				if (ev.key === CART_STORAGE_KEY) syncCartBadge();
+			});
+		</script>
+	</body>
+</html>

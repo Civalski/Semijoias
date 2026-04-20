@@ -1,0 +1,107 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { getAdminPathSegment } from "../../lib/admin-config";
+import { ADMIN_COOKIE, getSessionSecret, verifySessionValue } from "../../lib/admin-session";
+
+const expected = getAdminPathSegment();
+const segment = Astro.params.adminSecret ?? "";
+
+if (segment !== expected) {
+	return new Response(null, { status: 404 });
+}
+
+const sessionOk = await verifySessionValue(
+	Astro.cookies.get(ADMIN_COOKIE)?.value,
+	getSessionSecret(),
+);
+
+if (sessionOk) {
+	return Astro.redirect(`/${expected}/painel`, 302);
+}
+---
+
+<Layout title="Acesso · Gestão" description="Login administrativo Violeta Semi Joias.">
+	<div class="flex min-h-[70vh] flex-col items-center justify-center px-5 py-16">
+		<div class="w-full max-w-sm rounded-sm border border-ink/10 bg-white p-8 shadow-card">
+			<p class="text-center text-xs font-semibold uppercase tracking-[0.25em] text-gold-dark">
+				Violeta
+			</p>
+			<h1 class="font-display mt-2 text-center text-2xl font-semibold text-violet-deep">
+				Área de gestão
+			</h1>
+			<p class="mt-2 text-center text-sm text-ink-muted">
+				Entre para editar o catálogo (preços, imagens e textos).
+			</p>
+
+			<form id="login-form" class="mt-8 space-y-4">
+				<div>
+					<label for="username" class="block text-xs font-medium text-violet-deep"
+						>Usuário</label
+					>
+					<input
+						id="username"
+						name="username"
+						type="text"
+						autocomplete="username"
+						required
+						class="mt-1.5 w-full rounded-sm border border-ink/15 bg-cream/50 px-3 py-2.5 text-sm outline-none ring-violet-deep/20 focus:ring-2"
+					/>
+				</div>
+				<div>
+					<label for="password" class="block text-xs font-medium text-violet-deep"
+						>Senha</label
+					>
+					<input
+						id="password"
+						name="password"
+						type="password"
+						autocomplete="current-password"
+						required
+						class="mt-1.5 w-full rounded-sm border border-ink/15 bg-cream/50 px-3 py-2.5 text-sm outline-none ring-violet-deep/20 focus:ring-2"
+					/>
+				</div>
+				<p id="login-error" class="hidden text-sm text-red-700" role="alert"></p>
+				<button type="submit" class="btn-primary w-full justify-center">
+					Entrar
+				</button>
+			</form>
+		</div>
+	</div>
+
+	<script define:vars={{ painelPath: `/${expected}/painel` }}>
+		const form = document.getElementById("login-form");
+		const err = document.getElementById("login-error");
+
+		form?.addEventListener("submit", async (e) => {
+			e.preventDefault();
+			if (!err) return;
+			err.classList.add("hidden");
+			err.textContent = "";
+
+			const fd = new FormData(form);
+			const username = String(fd.get("username") ?? "");
+			const password = String(fd.get("password") ?? "");
+
+			const res = await fetch("/api/admin/login", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ username, password }),
+			});
+
+			if (res.ok) {
+				window.location.href = painelPath;
+				return;
+			}
+
+			let msg = "Não foi possível entrar.";
+			try {
+				const j = await res.json();
+				if (j?.error) msg = j.error;
+			} catch {
+				/* ignore */
+			}
+			err.textContent = msg;
+			err.classList.remove("hidden");
+		});
+	</script>
+</Layout>

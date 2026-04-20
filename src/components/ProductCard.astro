@@ -1,0 +1,65 @@
+---
+import { categoryLabels, formatPrice, type Product } from "../data/products";
+
+interface Props {
+	product: Product;
+}
+
+const { product } = Astro.props;
+---
+
+<article
+	class="group flex flex-col overflow-hidden rounded-sm bg-white shadow-soft ring-1 ring-ink/5 transition hover:shadow-card hover:ring-gold/25"
+>
+	<a href={`/produto/${product.slug}`} class="relative block aspect-[3/4] overflow-hidden bg-cream-dark/40">
+		<img
+			src={product.image}
+			alt={product.name}
+			class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+			width="800"
+			height="1067"
+			loading="lazy"
+		/>
+		<span
+			class="absolute left-3 top-3 rounded-sm bg-cream/95 px-2.5 py-1 text-[0.65rem] font-medium uppercase tracking-wider text-violet-deep shadow-sm backdrop-blur-sm"
+		>
+			{categoryLabels[product.category]}
+		</span>
+	</a>
+	<div class="flex flex-1 flex-col p-5">
+		<h2 class="font-display text-xl font-semibold text-violet-deep">
+			<a
+				href={`/produto/${product.slug}`}
+				class="transition hover:text-violet"
+			>
+				{product.name}
+			</a>
+		</h2>
+		<p class="mt-2 line-clamp-2 text-sm leading-relaxed text-ink-muted">
+			{product.description}
+		</p>
+		<div class="mt-auto flex flex-col gap-3 pt-5">
+			<div class="flex items-end justify-between gap-3">
+				<p class="font-display text-lg font-semibold text-gold-dark">
+					{formatPrice(product.price)}
+				</p>
+				<a
+					href={`/produto/${product.slug}`}
+					class="text-xs font-semibold uppercase tracking-wider text-violet transition group-hover:text-gold-dark"
+				>
+					Ver detalhes →
+				</a>
+			</div>
+			<button
+				type="button"
+				data-add-cart
+				data-slug={product.slug}
+				data-name={product.name}
+				data-price={String(product.price)}
+				class="w-full rounded-sm border border-gold/40 bg-cream/80 px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider text-violet-deep transition hover:border-gold hover:bg-white"
+			>
+				Adicionar ao carrinho
+			</button>
+		</div>
+	</div>
+</article>

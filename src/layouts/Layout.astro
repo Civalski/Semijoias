@@ -45,7 +45,12 @@ const waPhoneRaw = getPublicWhatsAppNumberRaw();
 			aria-live="polite"
 		>
 		</div>
-		<script define:vars={{ waPhoneRaw }}>
+		<script>
+			/**
+			 * Sem `define:vars` aqui: com `define:vars`, o Astro envolve o script de um
+			 * modo que coloca `import` dentro de uma IIFE — sintaxe inválida no browser
+			 * e o carrinho deixa de rodar inteiro.
+			 */
 			import {
 				buildWhatsAppOrderUrl,
 				CART_STORAGE_KEY,
@@ -57,7 +62,18 @@ const waPhoneRaw = getPublicWhatsAppNumberRaw();
 				openCartDrawer,
 			} from "../scripts/cart-drawer";
 
-			const waPhone = normalizeWhatsAppPhone(waPhoneRaw ?? "");
+			function resolveWaPhone(): string {
+				const fromDrawer =
+					document
+						.getElementById("cart-drawer-root")
+						?.getAttribute("data-whatsapp")
+						?.trim() ?? "";
+				return normalizeWhatsAppPhone(
+					fromDrawer || (import.meta.env.PUBLIC_WHATSAPP_NUMBER ?? ""),
+				);
+			}
+
+			const waPhone = resolveWaPhone();
 
 			let toastTimer: ReturnType<typeof setTimeout> | undefined;
 

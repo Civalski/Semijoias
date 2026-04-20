@@ -93,22 +93,6 @@ const categories: Category[] = ["colares", "brincos", "pulseiras", "aneis"];
 										/>
 									</div>
 									<div>
-										<label class="block text-xs font-medium text-violet-deep">Slug (URL)</label>
-										<input
-											type="text"
-											data-field="slug"
-											value={p.slug}
-											class="mt-1 w-full rounded-sm border border-ink/15 px-3 py-2 font-mono text-sm"
-										/>
-										<button
-											type="button"
-											data-slugify
-											class="mt-2 text-xs font-medium text-violet underline-offset-2 hover:underline"
-										>
-											Gerar slug a partir do nome
-										</button>
-									</div>
-									<div>
 										<label class="block text-xs font-medium text-violet-deep">Preço (R$)</label>
 										<input
 											type="number"
@@ -334,22 +318,6 @@ const categories: Category[] = ["colares", "brincos", "pulseiras", "aneis"];
 						/>
 					</div>
 					<div>
-						<label class="block text-xs font-medium text-violet-deep">Slug (URL)</label>
-						<input
-							type="text"
-							data-field="slug"
-							value=""
-							class="mt-1 w-full rounded-sm border border-ink/15 px-3 py-2 font-mono text-sm"
-						/>
-						<button
-							type="button"
-							data-slugify
-							class="mt-2 text-xs font-medium text-violet underline-offset-2 hover:underline"
-						>
-							Gerar slug a partir do nome
-						</button>
-					</div>
-					<div>
 						<label class="block text-xs font-medium text-violet-deep">Preço (R$)</label>
 						<input
 							type="number"
@@ -488,16 +456,6 @@ const categories: Category[] = ["colares", "brincos", "pulseiras", "aneis"];
 				`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="533" viewBox="0 0 400 533"><rect fill="#e8e4dc" width="400" height="533"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#7c6f8a" font-family="system-ui,sans-serif" font-size="14">Sem imagem</text></svg>`,
 			);
 
-		function slugifyClient(text: string): string {
-			return text
-				.normalize("NFD")
-				.replace(/\p{M}/gu, "")
-				.toLowerCase()
-				.trim()
-				.replace(/[^a-z0-9]+/g, "-")
-				.replace(/^-+|-+$/g, "");
-		}
-
 		function formatPriceBR(value: number): string {
 			return new Intl.NumberFormat("pt-BR", {
 				style: "currency",
@@ -550,7 +508,7 @@ const categories: Category[] = ["colares", "brincos", "pulseiras", "aneis"];
 			const price = Number.parseFloat(q("price"));
 			return {
 				id,
-				slug: q("slug").trim(),
+				slug: "",
 				name: q("name").trim(),
 				category: q("category"),
 				price: Number.isFinite(price) ? price : 0,
@@ -612,12 +570,6 @@ const categories: Category[] = ["colares", "brincos", "pulseiras", "aneis"];
 		}
 
 		function wireFieldset(fs: HTMLElement) {
-			fs.querySelector("[data-slugify]")?.addEventListener("click", () => {
-				const name =
-					(fs.querySelector('[data-field="name"]') as HTMLInputElement)?.value ?? "";
-				const slugInput = fs.querySelector('[data-field="slug"]') as HTMLInputElement;
-				if (slugInput) slugInput.value = slugifyClient(name);
-			});
 			fs.querySelector("[data-remove]")?.addEventListener("click", () => {
 				fs.remove();
 			});

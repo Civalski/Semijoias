@@ -1,6 +1,42 @@
-import type { Category, Product } from "../data/products";
+import { slugify, type Category, type Product } from "../data/products";
 
 const CATEGORIES: Category[] = ["colares", "brincos", "pulseiras", "aneis"];
+
+/**
+ * Slug da URL: só a partir do nome (painel não envia slug). Garante não vazio e único;
+ * slugs vazios virariam /produto/ e o Astro devolve 404.
+ */
+export function normalizeProductSlugs(products: Product[]): Product[] {
+	const used = new Set<string>();
+	return products.map((p) => {
+		let base = slugify(p.name);
+		if (!base) {
+			const idPart = p.id
+				.replace(/[^a-z0-9]+/gi, "-")
+				.replace(/^-+|-+$/g, "")
+				.slice(0, 24);
+			base = idPart || "item";
+		}
+		let candidate = base;
+		let n = 2;
+		while (used.has(candidate)) {
+			candidate = `${base}-${n++}`;
+		}
+		used.add(candidate);
+		return { ...p, slug: candidate };
+	});
+}
+
+function finalizeCatalogList(raw: Product[]): Product[] | null {
+	const normalized = normalizeProductSlugs(raw);
+	const slugs = new Set<string>();
+	for (const p of normalized) {
+		if (!isProduct(p)) return null;
+		if (slugs.has(p.slug)) return null;
+		slugs.add(p.slug);
+	}
+	return normalized;
+}
 
 export async function readProducts(db: D1Database): Promise<Product[]> {
 	const res = await db
@@ -15,7 +51,7 @@ export async function readProducts(db: D1Database): Promise<Product[]> {
 		const p = rowToProduct(row);
 		if (p) out.push(p);
 	}
-	return out;
+	return finalizeCatalogList(out) ?? out;
 }
 
 export async function writeProducts(
@@ -47,20 +83,18 @@ export async function writeProducts(
 }
 
 function rowToProduct(row: Record<string, unknown>): Product | null {
-	if (!isProduct(row)) return null;
-	return {
-		id: row.id as string,
-		slug: row.slug as string,
-		name: row.name as string,
-		category: row.category as Category,
-		price: Number(row.price),
-		description: row.description as string,
-		image: row.image as string,
-		material: row.material as string,
+	const price = Number(row.price);
+	const candidate = {
+		...row,
+		slug: row.slug == null ? "" : String(row.slug),
+		price,
 	};
+	if (!isLooseProduct(candidate)) return null;
+	return candidate;
 }
 
-function isProduct(x: unknown): x is Product {
+/** Aceita payload da API / linha D1; slug pode estar vazio (corrigido por `normalizeProductSlugs`). */
+function isLooseProduct(x: unknown): x is Product {
 	if (!x || typeof x !== "object") return false;
 	const p = x as Record<string, unknown>;
 	const price = Number(p.price);
@@ -70,7 +104,6 @@ function isProduct(x: unknown): x is Product {
 		typeof p.name === "string" &&
 		typeof p.category === "string" &&
 		CATEGORIES.includes(p.category as Category) &&
-		typeof p.price === "number" &&
 		Number.isFinite(price) &&
 		typeof p.description === "string" &&
 		typeof p.image === "string" &&
@@ -78,22 +111,22 @@ function isProduct(x: unknown): x is Product {
 	);
 }
 
-export function parseProductsPayload(body: unknown): Product[] | null {
-	if (!Array.isArray(body)) return null;
-	const list = body.filter(isProduct);
-	if (list.length !== body.length) return null;
-
-	const slugs = new Set<string>();
-	for (const p of list) {
-		if (slugs.has(p.slug)) return null;
-		slugs.add(p.slug);
-	}
-	return list;
+function isProduct(x: unknown): x is Product {
+	if (!isLooseProduct(x)) return false;
+	const p = x as Product;
+	return p.slug.trim().length > 0;
 }
 
-/** Valida um único produto (mesmas regras de `parseProductsPayload`). */
+export function parseProductsPayload(body: unknown): Product[] | null {
+	if (!Array.isArray(body)) return null;
+	const list = body.filter(isLooseProduct);
+	if (list.length !== body.length) return null;
+	return finalizeCatalogList(list);
+}
+
+/** Valida um único produto (campos iguais ao payload em lote; slug pode vir vazio). */
 export function parseSingleProduct(body: unknown): Product | null {
-	return isProduct(body) ? (body as Product) : null;
+	return isLooseProduct(body) ? (body as Product) : null;
 }
 
 /**
@@ -108,7 +141,7 @@ export async function upsertProduct(
 	const idx = all.findIndex((p) => p.id === product.id);
 	if (idx >= 0) all[idx] = product;
 	else all.push(product);
-	const parsed = parseProductsPayload(all);
+	const parsed = finalizeCatalogList(all);
 	if (!parsed) {
 		throw new Error("INVALID_CATALOG");
 	}

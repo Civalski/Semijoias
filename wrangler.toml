@@ -8,7 +8,7 @@ name = "semijoias"
 compatibility_date = "2026-04-20"
 
 [[d1_databases]]
-binding = "semijoias"
+binding = "DB"
 database_name = "semijoias"
 database_id = "fa603ce2-06d7-4ea3-8cfd-cabb80214420"
 

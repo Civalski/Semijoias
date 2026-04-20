@@ -9,7 +9,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "deploy": "astro build && wrangler deploy",
+    "deploy": "astro build && wrangler deploy --config dist/server/wrangler.json",
     "db:migrate:local": "wrangler d1 execute semijoias --local --file=./d1/schema.sql",
     "db:migrate:remote": "wrangler d1 execute semijoias --remote --file=./d1/schema.sql",
     "db:add-hero-column:local": "wrangler d1 execute semijoias --local --file=./d1/add-hero-featured.sql",

@@ -12,6 +12,8 @@
     "deploy": "astro build && wrangler deploy",
     "db:migrate:local": "wrangler d1 execute semijoias --local --file=./d1/schema.sql",
     "db:migrate:remote": "wrangler d1 execute semijoias --remote --file=./d1/schema.sql",
+    "db:add-hero-column:local": "wrangler d1 execute semijoias --local --file=./d1/add-hero-featured.sql",
+    "db:add-hero-column:remote": "wrangler d1 execute semijoias --remote --file=./d1/add-hero-featured.sql",
     "astro": "astro"
   },
   "dependencies": {

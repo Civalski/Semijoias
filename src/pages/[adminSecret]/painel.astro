@@ -165,6 +165,24 @@ const categories: Category[] = ["colares", "brincos", "pulseiras", "aneis"];
 											{p.description}
 										</textarea>
 									</div>
+									<div class="md:col-span-2">
+										<label class="flex cursor-pointer items-start gap-3 rounded-sm border border-ink/10 bg-cream-dark/15 px-3 py-3">
+											<input
+												type="checkbox"
+												data-field="heroFeatured"
+												checked={p.heroFeatured}
+												class="mt-0.5 h-4 w-4 shrink-0 rounded border-ink/25 text-violet-deep focus:ring-gold/40"
+											/>
+											<span>
+												<span class="block text-xs font-medium text-violet-deep">
+													Destaque na página inicial
+												</span>
+												<span class="mt-0.5 block text-[0.7rem] leading-snug text-ink-muted">
+													Foto grande no topo da loja; alterna automaticamente com outros itens marcados.
+												</span>
+											</span>
+										</label>
+									</div>
 								</div>
 								<aside
 									class="rounded-sm border border-ink/10 bg-cream-dark/20 p-4 lg:sticky lg:top-6"
@@ -386,6 +404,23 @@ const categories: Category[] = ["colares", "brincos", "pulseiras", "aneis"];
 							class="mt-1 w-full resize-y rounded-sm border border-ink/15 px-3 py-2 text-sm"
 						></textarea>
 					</div>
+					<div class="md:col-span-2">
+						<label class="flex cursor-pointer items-start gap-3 rounded-sm border border-ink/10 bg-cream-dark/15 px-3 py-3">
+							<input
+								type="checkbox"
+								data-field="heroFeatured"
+								class="mt-0.5 h-4 w-4 shrink-0 rounded border-ink/25 text-violet-deep focus:ring-gold/40"
+							/>
+							<span>
+								<span class="block text-xs font-medium text-violet-deep">
+									Destaque na página inicial
+								</span>
+								<span class="mt-0.5 block text-[0.7rem] leading-snug text-ink-muted">
+									Foto grande no topo da loja; alterna automaticamente com outros itens marcados.
+								</span>
+							</span>
+						</label>
+					</div>
 				</div>
 				<aside
 					class="rounded-sm border border-ink/10 bg-cream-dark/20 p-4 lg:sticky lg:top-6"
@@ -506,6 +541,9 @@ const categories: Category[] = ["colares", "brincos", "pulseiras", "aneis"];
 			const q = (name: string) =>
 				(fs.querySelector(`[data-field="${name}"]`) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null)?.value ?? "";
 			const price = Number.parseFloat(q("price"));
+			const heroCb = fs.querySelector(
+				'[data-field="heroFeatured"]',
+			) as HTMLInputElement | null;
 			return {
 				id,
 				slug: "",
@@ -515,6 +553,7 @@ const categories: Category[] = ["colares", "brincos", "pulseiras", "aneis"];
 				description: q("description").trim(),
 				image: q("image").trim(),
 				material: q("material").trim(),
+				heroFeatured: heroCb?.checked ?? false,
 			};
 		}
 

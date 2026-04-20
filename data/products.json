@@ -7,7 +7,8 @@
     "price": 189.9,
     "description": "Corrente delicada em banho de ouro 18k com pingente em formato de gravata e zircônias lapidadas. Acabamento espelhado e fecho lagosta com extensor.",
     "image": "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=800&q=80",
-    "material": "Banho de ouro 18k · Zircônia"
+    "material": "Banho de ouro 18k · Zircônia",
+    "heroFeatured": true
   },
   {
     "id": "2",
@@ -17,7 +18,8 @@
     "price": 149.9,
     "description": "Argolas médias com cristais facetados que capturam a luz. Leves e confortáveis para o dia a dia, com visual sofisticado à noite.",
     "image": "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=800&q=80",
-    "material": "Ródio branco · Cristal"
+    "material": "Ródio branco · Cristal",
+    "heroFeatured": true
   },
   {
     "id": "3",
@@ -27,7 +29,8 @@
     "price": 219.9,
     "description": "Elos ovalados entrelaçados com brilho acetinado. Peça versátil que combina sozinha ou em conjunto com outras pulseiras da linha.",
     "image": "https://images.unsplash.com/photo-1611652022419-a9419f74343d?w=800&q=80",
-    "material": "Banho de ouro 18k"
+    "material": "Banho de ouro 18k",
+    "heroFeatured": false
   },
   {
     "id": "4",
@@ -37,7 +40,8 @@
     "price": 129.9,
     "description": "Inspirado em joalheria clássica, com pedra central em destaque e aro trabalhado. Tamanho regulável para presente sem erro.",
     "image": "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800&q=80",
-    "material": "Banho de ouro rosé · Zircônia"
+    "material": "Banho de ouro rosé · Zircônia",
+    "heroFeatured": false
   },
   {
     "id": "5",
@@ -47,7 +51,8 @@
     "price": 159.9,
     "description": "Medalha circular com superfície acetinada e borda polida. Corrente veneziana fina — elegância discreta para qualquer ocasião.",
     "image": "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&q=80",
-    "material": "Aço cirúrgico com banho dourado"
+    "material": "Aço cirúrgico com banho dourado",
+    "heroFeatured": true
   },
   {
     "id": "6",
@@ -57,7 +62,8 @@
     "price": 99.9,
     "description": "Par de ear cuffs sem furo, com duas fileiras de brilho. Encaixe confortável e moderno para compor looks assimétricos.",
     "image": "https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=800&q=80",
-    "material": "Ródio negro · Zircônia"
+    "material": "Ródio negro · Zircônia",
+    "heroFeatured": false
   },
   {
     "id": "7",
@@ -67,7 +73,8 @@
     "price": 279.9,
     "description": "Fileira contínua de pedras em lapidação redonda. O brilho clássico da tennis bracelet em versão semi joia premium.",
     "image": "https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=800&q=80",
-    "material": "Prata 925 · Zircônia"
+    "material": "Prata 925 · Zircônia",
+    "heroFeatured": false
   },
   {
     "id": "8",
@@ -77,6 +84,7 @@
     "price": 119.9,
     "description": "Design de coroa com micro zircônias. Ideal para usar no mindinho ou empilhado com outros anéis da coleção.",
     "image": "https://images.unsplash.com/photo-1603561591411-07134e71a2a9?w=800&q=80",
-    "material": "Banho de ouro 18k"
+    "material": "Banho de ouro 18k",
+    "heroFeatured": false
   }
 ]

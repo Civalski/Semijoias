@@ -9,6 +9,8 @@ export interface Product {
 	description: string;
 	image: string;
 	material: string;
+	/** Exibir na faixa principal da home; alterna automaticamente com outros marcados. */
+	heroFeatured: boolean;
 }
 
 export const categoryLabels: Record<Category, string> = {

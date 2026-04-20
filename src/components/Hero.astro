@@ -1,3 +1,25 @@
+---
+import { formatPrice, type Product } from "../data/products";
+
+interface Props {
+	slides: Pick<Product, "slug" | "name" | "image" | "price">[];
+	startIndex: number;
+}
+
+const { slides, startIndex } = Astro.props;
+const safe = slides.length > 0 ? slides : [];
+const idx = safe.length > 0 ? Math.min(Math.max(0, startIndex), safe.length - 1) : 0;
+const first = safe[idx] ?? null;
+const slidesJson = JSON.stringify(
+	safe.map((s) => ({
+		slug: s.slug,
+		name: s.name,
+		image: s.image,
+		priceLabel: formatPrice(s.price),
+	})),
+);
+---
+
 <section class="relative overflow-hidden border-b border-ink/5">
 	<div
 		class="absolute inset-0 bg-gradient-to-br from-cream via-cream to-cream-dark"
@@ -27,29 +49,163 @@
 			</p>
 			<div class="mt-8 flex flex-wrap items-center gap-4">
 				<a href="/catalogo" class="btn-primary">Explorar catálogo</a>
-				<a href="/catalogo#destaques" class="btn-ghost">Destaques</a>
+				<a href="/#destaques" class="btn-ghost">Destaques</a>
 			</div>
 		</div>
 
 		<div class="relative mx-auto w-full max-w-md md:max-w-none">
 			<div
 				class="aspect-[4/5] overflow-hidden rounded-sm bg-violet-deep/5 shadow-card ring-1 ring-ink/5"
+				data-hero-carousel
 			>
-				<img
-					src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=900&q=85"
-					alt="Colar delicado em banho dourado sobre superfície clara"
-					class="h-full w-full object-cover"
-					width="900"
-					height="1125"
-					loading="eager"
-				/>
+				{
+					first ? (
+						<img
+							data-hero-img
+							src={first.image}
+							alt={first.name}
+							class="h-full w-full object-cover transition-opacity duration-200"
+							width="900"
+							height="1125"
+							loading="eager"
+							decoding="async"
+						/>
+					) : (
+						<img
+							src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=900&q=85"
+							alt="Semi joias em destaque"
+							class="h-full w-full object-cover"
+							width="900"
+							height="1125"
+							loading="eager"
+						/>
+					)
+				}
 			</div>
 			<div
-				class="absolute -bottom-4 -left-4 hidden rounded-sm border border-ink/8 bg-cream px-5 py-3 shadow-soft md:block"
+				class="absolute -bottom-4 -left-4 hidden max-w-[min(100%,18rem)] rounded-sm border border-ink/8 bg-cream px-5 py-3 shadow-soft md:block"
 			>
-				<p class="text-xs uppercase tracking-widest text-gold-dark">Desde</p>
-				<p class="font-display text-xl font-semibold text-violet-deep">R$ 99,90</p>
+				<p class="text-xs uppercase tracking-widest text-gold-dark">A partir de</p>
+				<p class="font-display text-xl font-semibold text-violet-deep" data-hero-price>
+					{first ? formatPrice(first.price) : "—"}
+				</p>
+				<p class="mt-2 text-xs leading-snug text-ink-muted" data-hero-caption>
+					{first ? (
+						<a
+							data-hero-link
+							href={`/produto/${first.slug}`}
+							class="font-medium text-violet-deep underline-offset-2 transition hover:text-violet hover:underline"
+						>
+							{first.name}
+						</a>
+					) : (
+						<span>Catálogo Violeta</span>
+					)}
+				</p>
 			</div>
+			{
+				safe.length > 1 && (
+					<div
+						class="mt-4 flex justify-center gap-2 md:absolute md:bottom-[-2.75rem] md:left-1/2 md:mt-0 md:-translate-x-1/2"
+						data-hero-dots
+						role="tablist"
+						aria-label="Destaques na página inicial"
+					/>
+				)
+			}
 		</div>
 	</div>
 </section>
+
+{
+	safe.length > 1 && (
+		<script is:inline define:vars={{ slidesJson, startIdx: idx }}>
+			(function () {
+				var slides = [];
+				try {
+					slides = JSON.parse(slidesJson);
+				} catch (e) {
+					return;
+				}
+				if (!slides.length) return;
+
+				var img = document.querySelector("[data-hero-img]");
+				var priceEl = document.querySelector("[data-hero-price]");
+				var cap = document.querySelector("[data-hero-caption]");
+				var dotsWrap = document.querySelector("[data-hero-dots]");
+				if (!img || !priceEl || !cap) return;
+
+				var i = typeof startIdx === "number" ? startIdx : 0;
+				if (i < 0 || i >= slides.length) i = 0;
+
+				function setDots(n) {
+					if (!dotsWrap) return;
+					var btns = dotsWrap.querySelectorAll("[data-hero-dot]");
+					for (var b = 0; b < btns.length; b++) {
+						var ix = parseInt(btns[b].getAttribute("data-hero-dot") || "-1", 10);
+						var sel = ix === n;
+						btns[b].setAttribute("aria-selected", sel ? "true" : "false");
+						btns[b].className =
+							"h-2 w-2 rounded-full transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet " +
+							(sel ? "bg-gold scale-110" : "bg-ink/25 hover:bg-gold/70");
+					}
+				}
+
+				function show(n) {
+					var s = slides[n];
+					if (!s) return;
+					img.style.opacity = "0.92";
+					window.setTimeout(function () {
+						img.src = s.image;
+						img.alt = s.name;
+						priceEl.textContent = s.priceLabel;
+						cap.innerHTML =
+							'<a href="/produto/' +
+							s.slug +
+							'" class="font-medium text-violet-deep underline-offset-2 transition hover:text-violet hover:underline">' +
+							s.name.replace(/</g, "&lt;").replace(/>/g, "&gt;") +
+							"</a>";
+						img.style.opacity = "1";
+					}, 160);
+					setDots(n);
+				}
+
+				if (dotsWrap && slides.length > 1) {
+					dotsWrap.innerHTML = slides
+						.map(function (_, j) {
+							return (
+								'<button type="button" role="tab" class="h-2 w-2 rounded-full bg-ink/25 transition hover:bg-gold/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet" data-hero-dot="' +
+								j +
+								'" aria-label="Destaque ' +
+								(j + 1) +
+								'" aria-selected="' +
+								(j === i ? "true" : "false") +
+								'"></button>'
+							);
+						})
+						.join("");
+					setDots(i);
+					dotsWrap.addEventListener("click", function (ev) {
+						var t = ev.target;
+						if (!(t instanceof HTMLElement)) return;
+						var dot = t.closest("[data-hero-dot]");
+						if (!dot) return;
+						var j = parseInt(dot.getAttribute("data-hero-dot") || "0", 10);
+						if (!Number.isFinite(j)) return;
+						i = j;
+						show(i);
+					});
+				}
+
+				show(i);
+
+				if (slides.length > 1) {
+					window.setInterval(function () {
+						i = (i + 1) % slides.length;
+						show(i);
+					}, 5000);
+				}
+			})();
+		</script>
+	)
+}

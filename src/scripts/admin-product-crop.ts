@@ -56,6 +56,7 @@ export function openProductImageCrop(source: File | string): Promise<string | nu
 	return new Promise((resolve) => {
 		const { modal, backdrop, img, cancel, apply } = getModalEls();
 		if (!modal || !img || !cancel || !apply) {
+			window.alert("Interface de enquadramento indisponível. Recarregue a página.");
 			resolve(null);
 			return;
 		}
@@ -90,6 +91,7 @@ export function openProductImageCrop(source: File | string): Promise<string | nu
 				height: OUT_H,
 				imageSmoothingEnabled: true,
 				imageSmoothingQuality: "high",
+				fillColor: "#ffffff",
 			});
 			if (!canvas) {
 				window.alert("Não foi possível gerar o recorte.");
@@ -117,6 +119,7 @@ export function openProductImageCrop(source: File | string): Promise<string | nu
 				dragMode: "move",
 				autoCropArea: 1,
 				responsive: true,
+				restore: false,
 				background: false,
 				movable: true,
 				zoomable: true,
@@ -126,6 +129,7 @@ export function openProductImageCrop(source: File | string): Promise<string | nu
 				rotatable: false,
 				scalable: false,
 				toggleDragModeOnDblclick: false,
+				checkCrossOrigin: false,
 			});
 		};
 
@@ -136,16 +140,30 @@ export function openProductImageCrop(source: File | string): Promise<string | nu
 				img.crossOrigin = "anonymous";
 			}
 
+			let cropStarted = false;
 			const run = () => {
-				bindCropper();
+				if (cropStarted) return;
+				cropStarted = true;
+				// Modal acabou de aparecer: espera o layout antes do Cropper medir o container.
+				requestAnimationFrame(() => {
+					requestAnimationFrame(() => {
+						bindCropper();
+					});
+				});
 			};
 
-			img.onload = run;
+			img.onload = () => {
+				run();
+			};
 			img.onerror = () => {
 				window.alert("Não foi possível carregar a imagem para enquadrar.");
 				finish(null);
 			};
 			img.src = src;
+			if (img.complete && img.naturalWidth > 0) {
+				img.onload = null;
+				run();
+			}
 		};
 
 		cancel.addEventListener("click", onCancel);
@@ -176,8 +194,22 @@ export function openProductImageCrop(source: File | string): Promise<string | nu
 						finish(null);
 						return;
 					}
-					if (!source.type.startsWith("image/")) {
-						window.alert("Selecione um arquivo de imagem.");
+					const lower = source.name.toLowerCase();
+					if (
+						source.type === "image/heic" ||
+						source.type === "image/heif" ||
+						lower.endsWith(".heic") ||
+						lower.endsWith(".heif")
+					) {
+						window.alert(
+							"Fotos HEIC não são suportadas aqui. No iPhone, em Ajustes > Câmera > Formatos, use “Mais compatível”, ou exporte como JPEG antes de enviar.",
+						);
+						finish(null);
+						return;
+					}
+					const extLooksImage = /\.(jpe?g|png|gif|webp|bmp)$/i.test(lower);
+					if (!source.type.startsWith("image/") && !extLooksImage) {
+						window.alert("Selecione um arquivo de imagem (JPEG, PNG ou WebP).");
 						finish(null);
 						return;
 					}

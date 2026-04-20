@@ -63,13 +63,23 @@ const categories: Category[] = ["colares", "brincos", "pulseiras", "aneis"];
 								<legend class="font-display text-lg font-semibold text-violet-deep">
 									{p.name}
 								</legend>
-								<button
-									type="button"
-									data-remove
-									class="text-xs font-semibold uppercase tracking-wider text-red-700/90 hover:text-red-800"
-								>
-									Remover
-								</button>
+								<div class="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
+									<p
+										data-save-status
+										class="hidden max-w-[min(100%,14rem)] text-xs leading-snug text-ink-muted"
+										aria-live="polite"
+									/>
+									<button type="button" data-save-item class="btn-primary !px-3 !py-2 text-xs">
+										Salvar este produto
+									</button>
+									<button
+										type="button"
+										data-remove
+										class="text-xs font-semibold uppercase tracking-wider text-red-700/90 hover:text-red-800"
+									>
+										Remover
+									</button>
+								</div>
 							</div>
 							<div class="mt-4 grid gap-8 lg:grid-cols-[1fr_minmax(280px,380px)] lg:items-start">
 								<div class="grid gap-4 md:grid-cols-2">
@@ -294,13 +304,23 @@ const categories: Category[] = ["colares", "brincos", "pulseiras", "aneis"];
 		>
 			<div class="flex flex-wrap items-start justify-between gap-3 border-b border-ink/5 pb-4">
 				<legend class="font-display text-lg font-semibold text-violet-deep">Novo produto</legend>
-				<button
-					type="button"
-					data-remove
-					class="text-xs font-semibold uppercase tracking-wider text-red-700/90 hover:text-red-800"
-				>
-					Remover
-				</button>
+				<div class="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
+					<p
+						data-save-status
+						class="hidden max-w-[min(100%,14rem)] text-xs leading-snug text-ink-muted"
+						aria-live="polite"
+					/>
+					<button type="button" data-save-item class="btn-primary !px-3 !py-2 text-xs">
+						Salvar este produto
+					</button>
+					<button
+						type="button"
+						data-remove
+						class="text-xs font-semibold uppercase tracking-wider text-red-700/90 hover:text-red-800"
+					>
+						Remover
+					</button>
+				</div>
 			</div>
 			<div class="mt-4 grid gap-8 lg:grid-cols-[1fr_minmax(280px,380px)] lg:items-start">
 				<div class="grid gap-4 md:grid-cols-2">
@@ -522,6 +542,75 @@ const categories: Category[] = ["colares", "brincos", "pulseiras", "aneis"];
 			setText("[data-preview-material]", material);
 		}
 
+		function collectFieldset(fs: HTMLElement): Record<string, unknown> | null {
+			const id = fs.dataset.id;
+			if (!id) return null;
+			const q = (name: string) =>
+				(fs.querySelector(`[data-field="${name}"]`) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null)?.value ?? "";
+			const price = Number.parseFloat(q("price"));
+			return {
+				id,
+				slug: q("slug").trim(),
+				name: q("name").trim(),
+				category: q("category"),
+				price: Number.isFinite(price) ? price : 0,
+				description: q("description").trim(),
+				image: q("image").trim(),
+				material: q("material").trim(),
+			};
+		}
+
+		function setSaveStatus(
+			fs: HTMLElement,
+			kind: "idle" | "loading" | "ok" | "err",
+			text: string,
+		) {
+			const el = fs.querySelector("[data-save-status]") as HTMLElement | null;
+			if (!el) return;
+			el.textContent = text;
+			el.classList.remove("hidden", "text-ink-muted", "text-emerald-800", "text-red-800");
+			if (kind === "idle") {
+				el.textContent = "";
+				el.classList.add("hidden");
+				return;
+			}
+			el.classList.remove("hidden");
+			if (kind === "loading") el.classList.add("text-ink-muted");
+			else if (kind === "ok") el.classList.add("text-emerald-800");
+			else el.classList.add("text-red-800");
+		}
+
+		async function saveFieldset(fs: HTMLElement) {
+			const btn = fs.querySelector("[data-save-item]") as HTMLButtonElement | null;
+			const payload = collectFieldset(fs);
+			if (!payload) return;
+			btn.disabled = true;
+			setSaveStatus(fs, "loading", "Salvando…");
+			try {
+				const res = await fetch("/api/admin/products", {
+					method: "PATCH",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(payload),
+				});
+				if (res.ok) {
+					setSaveStatus(fs, "ok", "Salvo.");
+					return;
+				}
+				let detail = "Não foi possível salvar.";
+				try {
+					const j = (await res.json()) as { error?: string };
+					if (j?.error) detail = j.error;
+				} catch {
+					/* ignore */
+				}
+				setSaveStatus(fs, "err", detail);
+			} catch {
+				setSaveStatus(fs, "err", "Falha de rede. Tente de novo.");
+			} finally {
+				btn.disabled = false;
+			}
+		}
+
 		function wireFieldset(fs: HTMLElement) {
 			fs.querySelector("[data-slugify]")?.addEventListener("click", () => {
 				const name =
@@ -531,6 +620,9 @@ const categories: Category[] = ["colares", "brincos", "pulseiras", "aneis"];
 			});
 			fs.querySelector("[data-remove]")?.addEventListener("click", () => {
 				fs.remove();
+			});
+			fs.querySelector("[data-save-item]")?.addEventListener("click", () => {
+				void saveFieldset(fs);
 			});
 
 			const fileInput = fs.querySelector("[data-image-file]") as HTMLInputElement | null;
@@ -596,12 +688,18 @@ const categories: Category[] = ["colares", "brincos", "pulseiras", "aneis"];
 		editorsEl?.addEventListener("input", (e) => {
 			const t = e.target as HTMLElement | null;
 			const fs = t?.closest("[data-product-editor]") as HTMLElement | null;
-			if (fs) updatePreviews(fs);
+			if (fs) {
+				updatePreviews(fs);
+				setSaveStatus(fs, "idle", "");
+			}
 		});
 		editorsEl?.addEventListener("change", (e) => {
 			const t = e.target as HTMLElement | null;
 			const fs = t?.closest("[data-product-editor]") as HTMLElement | null;
-			if (fs) updatePreviews(fs);
+			if (fs) {
+				updatePreviews(fs);
+				setSaveStatus(fs, "idle", "");
+			}
 		});
 
 		document.getElementById("btn-add")?.addEventListener("click", () => {
@@ -617,22 +715,8 @@ const categories: Category[] = ["colares", "brincos", "pulseiras", "aneis"];
 		function collect(): unknown[] {
 			const out: unknown[] = [];
 			document.querySelectorAll("[data-product-editor]").forEach((el) => {
-				const id = (el as HTMLElement).dataset.id;
-				if (!id) return;
-				const q = (name: string) =>
-					(el.querySelector(`[data-field="${name}"]`) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null)?.value ?? "";
-
-				const price = Number.parseFloat(q("price"));
-				out.push({
-					id,
-					slug: q("slug").trim(),
-					name: q("name").trim(),
-					category: q("category"),
-					price: Number.isFinite(price) ? price : 0,
-					description: q("description").trim(),
-					image: q("image").trim(),
-					material: q("material").trim(),
-				});
+				const one = collectFieldset(el as HTMLElement);
+				if (one) out.push(one);
 			});
 			return out;
 		}

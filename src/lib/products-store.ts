@@ -90,3 +90,27 @@ export function parseProductsPayload(body: unknown): Product[] | null {
 	}
 	return list;
 }
+
+/** Valida um único produto (mesmas regras de `parseProductsPayload`). */
+export function parseSingleProduct(body: unknown): Product | null {
+	return isProduct(body) ? (body as Product) : null;
+}
+
+/**
+ * Insere ou atualiza um produto pelo `id` e reescreve o catálogo completo
+ * (mesmo mecanismo do PUT em lote), garantindo slugs únicos em toda a lista.
+ */
+export async function upsertProduct(
+	db: D1Database,
+	product: Product,
+): Promise<void> {
+	const all = await readProducts(db);
+	const idx = all.findIndex((p) => p.id === product.id);
+	if (idx >= 0) all[idx] = product;
+	else all.push(product);
+	const parsed = parseProductsPayload(all);
+	if (!parsed) {
+		throw new Error("INVALID_CATALOG");
+	}
+	await writeProducts(db, parsed);
+}

@@ -1,0 +1,4 @@
+# Copie para .dev.vars e preencha (o .dev.vars não vai para o Git).
+ADMIN_USER=
+ADMIN_PASSWORD=
+ADMIN_SESSION_SECRET=

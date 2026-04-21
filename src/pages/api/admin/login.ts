@@ -8,21 +8,13 @@ import {
 
 export const POST: APIRoute = async ({ request, cookies }) => {
 	const secret = getSessionSecret();
-	if (!secret) {
-		return new Response(
-			JSON.stringify({
-				error: "Defina ADMIN_SESSION_SECRET no servidor.",
-			}),
-			{ status: 503, headers: { "Content-Type": "application/json" } },
-		);
-	}
-
 	const expectedUser = getAdminUser();
 	const expectedPass = getAdminPassword();
-	if (!expectedUser || !expectedPass) {
+	if (!secret || !expectedUser || !expectedPass) {
 		return new Response(
 			JSON.stringify({
-				error: "Defina ADMIN_USER e ADMIN_PASSWORD no servidor.",
+				error:
+					"Preencha ADMIN_USER, ADMIN_PASSWORD e ADMIN_SESSION_SECRET em wrangler.toml [vars].",
 			}),
 			{ status: 503, headers: { "Content-Type": "application/json" } },
 		);

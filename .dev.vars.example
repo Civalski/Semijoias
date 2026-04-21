@@ -1,4 +1,4 @@
-# Copie para .dev.vars e preencha (o .dev.vars não vai para o Git).
-ADMIN_USER=
-ADMIN_PASSWORD=
-ADMIN_SESSION_SECRET=
+# Opcional: sobrescreve [vars] do wrangler.toml no `astro dev` (não vai para o Git).
+# ADMIN_USER=
+# ADMIN_PASSWORD=
+# ADMIN_SESSION_SECRET=

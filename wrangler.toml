@@ -7,9 +7,6 @@
 name = "semijoias"
 compatibility_date = "2026-04-20"
 compatibility_flags = ["nodejs_compat"]
-# Evita que `wrangler deploy` apague variáveis de texto criadas só no painel (ex.: ADMIN_USER).
-# O script scripts/ensure-wrangler-keep-vars.mjs também define isso em dist/server/wrangler.json.
-keep_vars = true
 
 # Com Worker + ASSETS, o default é “asset primeiro”: rotas HTML (/, /catalogo,
 # etc.) não têm ficheiro em dist/client e o edge devolve 404 vazio sem passar
@@ -33,11 +30,12 @@ database_id = "fa603ce2-06d7-4ea3-8cfd-cabb80214420"
 binding = "SESSION"
 id = "34f13d35127245719fc22bad1e9e0a2c"
 
-# Admin: não coloque USER/PASS aqui (ficam públicos no Git). Local: .dev.vars.
-# Produção: no painel do Worker (Variables) ou `wrangler secret put`.
-# Segredos (Encrypt) nunca são apagados pelo deploy; variáveis em texto precisam
-# de keep_vars + novo deploy (ou some após o último deploy — cadastre de novo).
+# Admin: tudo em [vars] (texto simples). Sem Cloudflare Secrets — sobe no deploy com o build.
 [vars]
 ADMIN_PATH_SEGMENT = "admpainelmanager"
+ADMIN_USER = "adminfran"
+ADMIN_PASSWORD = "Violet@10"
+# HMAC do cookie de sessão do painel (troque se vazar o repo).
+ADMIN_SESSION_SECRET = "d4e8a1f7c3b9e2a6d0f5c8b3e7a1d9f4c6b2e8a5d0f7c3b9e1a6d4f8c2b7e5a0d9f3"
 # DDD + número, só dígitos (ex.: 5519995573316). Usado no link wa.me do checkout.
 PUBLIC_WHATSAPP_NUMBER = "5519995573316"
